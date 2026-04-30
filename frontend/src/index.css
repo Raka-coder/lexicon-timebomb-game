@@ -187,4 +187,30 @@
   .glow-cyan {
     box-shadow: 0 0 20px oklch(0.6 0.2 200 / 0.4);
   }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+  .animate-shake {
+    animation: shake 0.4s ease-in-out;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: oklch(1 0 0 / 0.05);
+    border-radius: 3px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: oklch(0.6 0.2 200 / 0.3);
+    border-radius: 3px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.6 0.2 200 / 0.5);
+  }
 }

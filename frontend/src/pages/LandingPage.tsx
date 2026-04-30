@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSocket } from "@/hooks/useSocket";
 import { useGameSocket } from "@/hooks/useGameSocket";
@@ -12,6 +13,12 @@ export function LandingPage() {
   const navigate = useNavigate();
 
   useGameSocket(socket);
+
+  useEffect(() => {
+    if (gameStatus === "playing") {
+      navigate("/game");
+    }
+  }, [gameStatus, navigate]);
 
   const handleCreateRoom = (playerName: string) => {
     socket.emit("CREATE_ROOM", { playerName });

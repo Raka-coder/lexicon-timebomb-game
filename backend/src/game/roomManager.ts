@@ -1,4 +1,5 @@
 import type { Server, Socket } from "socket.io";
+import type { GameState } from "./gameLogic";
 
 export interface Player {
   id: string;
@@ -12,6 +13,7 @@ export interface Room {
   players: Map<string, Player>;
   hostSocketId: string;
   status: "waiting" | "playing" | "finished";
+  gameState?: GameState;
 }
 
 const rooms = new Map<string, Room>();
