@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+bun.lockb
+
+# Build
+dist/
+out/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE/OS
+.idea/
+.DS_Store

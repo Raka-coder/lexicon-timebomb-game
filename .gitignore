@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+.bun/
+bun.lockb
+
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Build/Output
+dist/
+out/
+build/
+*.tsbuildinfo
+
+# Debug/Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE/Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Coverage
+coverage/
+*.lcov
+
+# Temporary files
+.temp/
+.cache/
+.eslintcache
