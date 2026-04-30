@@ -2,7 +2,9 @@ import { useEffect } from "react";
 import { Socket } from "socket.io-client";
 import { useGameStore } from "../stores/gameStore";
 
-export function useGameSocket(socket: Socket) {
+export function useGameSocket(socket: Socket | null) {
+  if (!socket) return;
+  
   const {
     setRoom,
     setPlayers,
@@ -20,18 +22,24 @@ export function useGameSocket(socket: Socket) {
 
   useEffect(() => {
     socket.on("ROOM_CREATED", ({ roomCode, playerId, isHost }) => {
-      console.log("ROOM_CREATED:", roomCode);
+      console.log(">> ROOM_CREATED:", roomCode, playerId, isHost);
       setRoom(roomCode, playerId, isHost);
+      setGameStatus("waiting");
+      setPlayers([{ id: playerId, name: "Kamu", isHost }]);
     });
 
     socket.on("ROOM_JOINED", ({ roomCode, playerId, isHost }) => {
-      console.log("ROOM_JOINED:", roomCode);
+      console.log(">> ROOM_JOINED:", roomCode, playerId, isHost);
       setRoom(roomCode, playerId, isHost);
+      setGameStatus("waiting");
+      setPlayers([{ id: playerId, name: "Kamu", isHost: false }]);
     });
 
     socket.on("PLAYER_JOINED", ({ players }) => {
-      console.log("PLAYER_JOINED:", players);
-      setPlayers(players);
+      console.log(">> PLAYER_JOINED:", JSON.stringify(players));
+      if (players && players.length > 0) {
+        setPlayers(players);
+      }
     });
 
     socket.on("PLAYER_LEFT", ({ players, message }) => {
@@ -45,31 +53,40 @@ export function useGameSocket(socket: Socket) {
       setError(message);
     });
 
-    socket.on("GAME_STARTED", ({ players }) => {
-      console.log("GAME_STARTED");
+    socket.on("GAME_STARTED", ({ players, currentWord, requiredLetter, currentPlayerId, scores }) => {
+      console.log(">> GAME_STARTED:", { currentWord, requiredLetter, currentPlayerId });
       setGameStatus("playing");
       setPlayers(players);
-      setScores(players.reduce((acc: Record<string, number>, p: { id: string }) => {
-        acc[p.id] = 0;
-        return acc;
-      }, {}));
+      setCurrentWord(currentWord || "");
+      setRequiredLetter(requiredLetter || "");
+      setCurrentPlayer(currentPlayerId);
+      setScores(scores || {});
+      setIsMyTurn(currentPlayerId === myPlayerId);
+      setTimeLeft(15);
     });
 
     socket.on("TURN_START", ({ currentPlayerId, currentWord, requiredLetter, scores }) => {
-      console.log("TURN_START:", currentPlayerId, currentWord);
-      setCurrentWord(currentWord);
-      setRequiredLetter(requiredLetter);
+      console.log(">> TURN_START:", currentPlayerId, currentWord, requiredLetter);
+      setCurrentWord(currentWord || "");
+      setRequiredLetter(requiredLetter || "");
       setCurrentPlayer(currentPlayerId);
-      setScores(scores);
+      setScores(scores || {});
       setIsMyTurn(currentPlayerId === myPlayerId);
+      setTimeLeft(15);
     });
 
-    socket.on("WORD_VALID", ({ word, playerId, nextLetter, scores }) => {
-      console.log("WORD_VALID:", word);
+    socket.on("WORD_VALID", ({ word, nextLetter, scores, currentPlayerId }) => {
+      console.log(">> WORD_VALID:", word, nextLetter);
       addWordToHistory(word);
-      setRequiredLetter(nextLetter);
-      setScores(scores);
+      setCurrentWord(word);
+      setRequiredLetter(nextLetter || "");
+      if (currentPlayerId) {
+        setCurrentPlayer(currentPlayerId);
+        setIsMyTurn(currentPlayerId === myPlayerId);
+      }
+      setScores(scores || {});
       setError(null);
+      setTimeLeft(15);
     });
 
     socket.on("WORD_INVALID", ({ word, reason }) => {
@@ -88,10 +105,15 @@ export function useGameSocket(socket: Socket) {
       setTimeLeft(timeLeft);
     });
 
-    socket.on("GAME_OVER", ({ winnerId, scores, wordHistory }) => {
-      console.log("GAME_OVER:", winnerId);
+    socket.on("GAME_OVER", ({ winnerId, loserId, reason, scores, wordHistory }) => {
+      console.log(">> GAME_OVER:", { winnerId, loserId, reason });
       setGameStatus("finished");
-      setScores(scores);
+      setScores(scores || {});
+      if (winnerId === myPlayerId) {
+        setError("Selamat! Kamu menang! 🎉");
+      } else if (loserId === myPlayerId) {
+        setError("Waktu habis! Kamu kalah! 💥");
+      }
     });
 
     return () => {

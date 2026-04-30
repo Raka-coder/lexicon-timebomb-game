@@ -8,10 +8,12 @@ let socket: Socket | null = null;
 export function getSocket() {
   if (!socket) {
     socket = io(SOCKET_URL, {
-      autoConnect: false,
+      autoConnect: true,
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
+      transports: ["websocket", "polling"],
+      withCredentials: true,
     });
   }
   return socket;
@@ -36,9 +38,8 @@ export function useSocket() {
     s.on("connect", onConnect);
     s.on("disconnect", onDisconnect);
 
-    if (!s.connected) {
-      console.log("Connecting to socket...");
-      s.connect();
+    if (s.connected) {
+      setIsConnected(true);
     }
 
     return () => {

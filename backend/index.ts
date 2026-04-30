@@ -1,44 +1,74 @@
 import { Hono } from "hono";
+import { createServer } from "http";
 import { Server } from "socket.io";
-import { serve } from "@hono/node-server";
 import { TimerManager } from "./src/game/timerManager";
-import { initGameState, validateWord, getNextPlayer } from "./src/game/gameLogic";
+import { initGameState, validateWord as validateWordLogic, getNextPlayer } from "./src/game/gameLogic";
+import { validateWord, getRandomStartWord, getWordCount } from "./src/dictionary/words";
 import {
   createRoom,
   joinRoom,
   removePlayer,
-  getRoomByCode,
   getRoomBySocketId,
   broadcastToRoom,
 } from "./src/game/roomManager";
 import roomRoutes from "./src/routes/room";
+import dictionaryRoutes from "./src/routes/dictionary";
 
 const app = new Hono();
+
+app.use("*", async (c, next) => {
+  c.res.headers.set("Access-Control-Allow-Origin", "*");
+  c.res.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  c.res.headers.set("Access-Control-Allow-Headers", "Content-Type");
+  await next();
+});
+
+const server = createServer((req, res) => {
+  const url = new URL(req.url || "/", `http://localhost:3001`);
+  
+  const headers = new Headers();
+  for (const [k, v] of Object.entries(req.headers)) if (v) headers.set(k, v);
+  
+  const protocol = req.connection.encrypted ? "https" : "http";
+  const fullUrl = `${protocol}://${req.headers.host}${req.url}`;
+  
+  const bodyReader = ["GET", "HEAD"].includes(req.method) ? null : req;
+  
+  app.fetch(new Request(fullUrl, { method: req.method, headers, body: bodyReader }))
+    .then(response => {
+      res.writeHead(response.status, {
+        ...Object.fromEntries(response.headers),
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      });
+      return response.text();
+    })
+    .then(text => res.end(text))
+    .catch(() => { res.writeHead(500); res.end("Error"); });
+});
+
+const io = new Server(server, {
+  cors: {
+    origin: ["http://localhost:5173", "http://localhost:5174", "http://localhost:3001"],
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+  transports: ["websocket", "polling"],
+});
+
+const timerManager = new TimerManager(io);
 
 app.get("/api/health", (c) => {
   return c.json({
     status: "ok",
+    wordCount: getWordCount(),
     timestamp: new Date().toISOString(),
   });
 });
 
 app.route("/api/room", roomRoutes);
-
-const PORT = parseInt(process.env.PORT || "3001");
-
-const server = serve({
-  fetch: app.fetch,
-  port: PORT,
-});
-
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
-  },
-});
-
-const timerManager = new TimerManager(io);
+app.route("/api/dictionary", dictionaryRoutes);
 
 io.on("connection", (socket) => {
   console.log(`Client connected: ${socket.id}`);
@@ -95,7 +125,8 @@ io.on("connection", (socket) => {
     }
 
     const playerIds = Array.from(room.players.values()).map((p) => p.id);
-    const gameState = initGameState(playerIds);
+    const startWord = getRandomStartWord();
+    const gameState = initGameState(playerIds, startWord);
     room.gameState = gameState;
     room.status = "playing";
 
@@ -111,6 +142,13 @@ io.on("connection", (socket) => {
       currentWord: gameState.currentWord,
       requiredLetter: gameState.requiredLetter,
       currentPlayerId: gameState.currentPlayerId,
+      scores: gameState.scores,
+    });
+
+    io.to(room.code).emit("TURN_START", {
+      currentPlayerId: firstPlayer.id,
+      currentWord: gameState.currentWord,
+      requiredLetter: gameState.requiredLetter,
       scores: gameState.scores,
     });
 
@@ -130,7 +168,7 @@ io.on("connection", (socket) => {
       timerManager.stopTurn(room.code);
     });
 
-    console.log(`Game started in room ${room.code}`);
+    console.log(`Game started in room ${room.code} with word: ${startWord}`);
   });
 
   socket.on("SUBMIT_WORD", ({ word }: { word: string }) => {
@@ -150,16 +188,27 @@ io.on("connection", (socket) => {
       return;
     }
 
-    const validation = validateWord(
+    const localValidation = validateWordLogic(
       word,
       gameState.requiredLetter,
       gameState.wordHistory
     );
 
-    if (!validation.valid) {
+    if (!localValidation.valid) {
       socket.emit("WORD_INVALID", {
         word,
-        reason: validation.reason,
+        reason: localValidation.reason,
+      });
+      return;
+    }
+
+    const kbbiValidation = validateWord(word);
+
+    if (!kbbiValidation.valid) {
+      socket.emit("WORD_INVALID", {
+        word,
+        reason: "not_in_dictionary",
+        message: `Kata "${word.trim()}" tidak ditemukan di KBBI`,
       });
       return;
     }
@@ -182,6 +231,13 @@ io.on("connection", (socket) => {
       playerName: player.name,
       scores: gameState.scores,
       nextLetter,
+    });
+
+    io.to(room.code).emit("TURN_START", {
+      currentPlayerId: nextPlayerId,
+      currentWord: gameState.currentWord,
+      requiredLetter: gameState.requiredLetter,
+      scores: gameState.scores,
     });
 
     timerManager.startTurn(room.code, nextPlayerId, () => {
@@ -232,4 +288,9 @@ io.on("connection", (socket) => {
   });
 });
 
-console.log(`Server running on http://localhost:${PORT}`);
+const PORT = parseInt(process.env.PORT || "3001");
+
+server.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Socket.IO ready`);
+});

@@ -15,7 +15,8 @@ export function GamePage() {
     gameStatus,
     players,
     roomCode,
-    setError,
+    currentWord,
+    requiredLetter,
   } = useGameStore();
 
   useGameSocket(socket);
@@ -60,6 +61,18 @@ export function GamePage() {
           <p className="text-muted-foreground">
             Room: <span className="font-mono text-doom-cyan">{roomCode}</span>
           </p>
+        </div>
+
+        <div className="text-center">
+          <div className="inline-block p-4 bg-doom-card border-2 border-doom-cyan rounded-xl">
+            <p className="text-sm text-muted-foreground mb-1">Kata awal:</p>
+            <p className="text-4xl font-bold font-mono text-doom-cyan glow-cyan">
+              {currentWord || "..."}
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Sambung dengan huruf: <span className="text-doom-purple font-bold">{requiredLetter?.toUpperCase()}→</span>
+            </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

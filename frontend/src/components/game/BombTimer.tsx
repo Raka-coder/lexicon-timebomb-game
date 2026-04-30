@@ -1,7 +1,29 @@
+import { useEffect, useRef } from "react";
 import { useGameStore } from "@/stores/gameStore";
 
 export function BombTimer() {
-  const { timeLeft, isMyTurn } = useGameStore();
+  const { timeLeft, isMyTurn, gameStatus, setTimeLeft } = useGameStore();
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (gameStatus === "playing" && isMyTurn) {
+      setTimeLeft(15);
+      
+      intervalRef.current = setInterval(() => {
+        const current = useGameStore.getState().timeLeft;
+        if (current <= 1) {
+          if (intervalRef.current) clearInterval(intervalRef.current);
+          setTimeLeft(0);
+        } else {
+          setTimeLeft(current - 1);
+        }
+      }, 1000);
+    }
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [gameStatus, isMyTurn, setTimeLeft]);
 
   const percentage = (timeLeft / 15) * 100;
   const circumference = 2 * Math.PI * 54;

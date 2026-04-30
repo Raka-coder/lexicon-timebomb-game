@@ -6,25 +6,7 @@ export interface GameState {
   scores: Record<string, number>;
 }
 
-const HARDCODED_START_WORDS = [
-  "rumah",
-  "kucing",
-  "pantai",
-  "musik",
-  "buku",
-  "anjing",
-  "uang",
-  "makan",
-  "jalan",
-  "belajar",
-];
-
-export function initGameState(playerIds: string[]): GameState {
-  const startWord =
-    HARDCODED_START_WORDS[
-      Math.floor(Math.random() * HARDCODED_START_WORDS.length)
-    ] || "rumah";
-
+export function initGameState(playerIds: string[], startWord: string = "rumah"): GameState {
   const firstPlayerId =
     playerIds[Math.floor(Math.random() * playerIds.length)] || null;
 
