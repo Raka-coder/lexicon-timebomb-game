@@ -5,10 +5,11 @@ import { useGameStore } from "@/stores/gameStore";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { Send, Zap, AlertCircle, Loader2 } from "lucide-react";
 
 const formSchema = z.object({
-  word: z.string().min(3, "Minimal 3 huruf"),
+  word: z.string().min(3, "Minimum 3 characters"),
 });
 
 interface Props {
@@ -18,6 +19,7 @@ interface Props {
 export function WordInput({ onSubmit }: Props) {
   const { isMyTurn, isValidating, requiredLetter, errorMessage, setError } =
     useGameStore();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -26,89 +28,122 @@ export function WordInput({ onSubmit }: Props) {
     },
   });
 
-  // Reset form after successful submission (when isValidating turns false)
   useEffect(() => {
     if (!isValidating) {
       form.reset();
     }
   }, [isValidating, form]);
 
+  useEffect(() => {
+    if (isMyTurn && !isValidating && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
+    }
+  }, [isMyTurn, isValidating]);
+
   const onFormSubmit = (values: z.infer<typeof formSchema>) => {
     if (!isMyTurn || isValidating) return;
     
-    // Check local validation before emitting
     const word = values.word.trim().toLowerCase();
     if (word[0] !== requiredLetter.toLowerCase()) {
-      setError(`Harus dimulai dengan huruf "${requiredLetter.toUpperCase()}"`);
+      setError(`Must start with letter "${requiredLetter.toUpperCase()}"`);
       return;
     }
 
     onSubmit(word);
+    
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 50);
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onFormSubmit)} className="w-full max-w-md">
-        <div className="flex gap-2">
-          <FormField
-            control={form.control}
-            name="word"
-            render={({ field }) => (
-              <FormItem className="flex-1 space-y-0">
-                <div className="relative">
-                  <FormControl>
-                    <Input
-                      placeholder={isMyTurn ? `Awali dengan huruf "${requiredLetter.toUpperCase()}"` : "Menunggu giliran..."}
-                      disabled={!isMyTurn || isValidating}
-                      {...field}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        if (errorMessage) setError(null);
-                      }}
-                      className={`
-                        bg-background/80 border-doom h-12 text-lg font-mono
-                        placeholder:text-muted-foreground/50
-                        transition-all duration-200
-                        ${errorMessage ? "border-red-500 animate-shake" : ""}
-                        ${!isMyTurn ? "opacity-50" : ""}
-                      `}
-                    />
-                  </FormControl>
-                  {isMyTurn && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <span className="text-xs text-doom-cyan font-bold">
-                        {requiredLetter.toUpperCase()}→
-                      </span>
+      <form onSubmit={form.handleSubmit(onFormSubmit)} className="w-full max-w-xl">
+        <div className="flex flex-col gap-4">
+          <div className="flex gap-3">
+            <FormField
+              control={form.control}
+              name="word"
+              render={({ field }) => (
+                <FormItem className="flex-1 space-y-0">
+                  <div className="relative group">
+                    <div className={`absolute -inset-1 bg-gradient-to-r ${isMyTurn ? 'from-primary/40 to-accent/40' : 'from-white/5 to-white/5'} rounded-[1.5rem] blur opacity-0 group-focus-within:opacity-100 transition duration-700`} />
+                    <div className="relative">
+                      <FormControl>
+                        <Input
+                          {...field}
+                          ref={(e) => {
+                            field.ref(e);
+                            inputRef.current = e;
+                          }}
+                          placeholder={isMyTurn ? `INPUT WORD STARTING WITH "${requiredLetter.toUpperCase()}"...` : "WAITING FOR TRANSMISSION..."}
+                          disabled={!isMyTurn || isValidating}
+                          autoComplete="off"
+                          autoCorrect="off"
+                          autoCapitalize="off"
+                          spellCheck={false}
+                          enterKeyHint="send"
+                          onChange={(e) => {
+                            field.onChange(e);
+                            if (errorMessage) setError(null);
+                          }}
+                          className={`
+                            glass h-16 md:h-20 text-xl font-black tracking-widest uppercase rounded-[1.4rem] px-8
+                            placeholder:text-white/10 placeholder:font-bold placeholder:text-[11px] placeholder:tracking-[0.4em]
+                            transition-all duration-500
+                            ${errorMessage ? "border-destructive/50 shadow-[0_0_25px_rgba(var(--color-destructive),0.2)] animate-shake" : ""}
+                            ${isMyTurn ? "focus:border-primary/50 focus:bg-white/[0.08]" : "opacity-40 cursor-not-allowed"}
+                          `}
+                        />
+                      </FormControl>
+                      
+                      <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-3 pointer-events-none">
+                        {isMyTurn && (
+                          <div className="flex items-center gap-2 bg-primary/20 border border-primary/30 px-4 py-2 rounded-xl backdrop-blur-md">
+                            <Zap className="h-4 w-4 text-primary fill-primary animate-pulse" />
+                            <span className="text-sm font-black text-white">{requiredLetter.toUpperCase()}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  )}
+                  </div>
+                </FormItem>
+              )}
+            />
+            
+            <Button
+              type="submit"
+              disabled={!isMyTurn || isValidating || !form.watch("word")}
+              className={`
+                h-16 md:h-20 px-8 md:px-12 rounded-[1.4rem] transition-all duration-500 active:scale-95
+                ${isMyTurn && form.watch("word")
+                  ? "btn-stitch border-primary/20 text-white"
+                  : "bg-white/5 border-white/5 text-white/20 cursor-not-allowed"
+                }
+              `}
+            >
+              {isValidating ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                <div className="flex flex-col items-center gap-1">
+                  <Send className="h-5 w-5" />
+                  <span className="text-[9px] font-black uppercase tracking-widest">Send</span>
                 </div>
-              </FormItem>
-            )}
-          />
-          <Button
-            type="submit"
-            disabled={!isMyTurn || isValidating || !form.watch("word")}
-            className={`
-              h-12 px-6 font-bold uppercase tracking-wider
-              transition-all duration-200
-              ${isMyTurn
-                ? "bg-doom-purple hover:bg-doom-purple/80 glow-purple"
-                : "bg-muted text-muted-foreground"
-              }
-            `}
-          >
-            {isValidating ? (
-              <span className="animate-spin text-xl">⟳</span>
-            ) : (
-              "Kirim"
-            )}
-          </Button>
+              )}
+            </Button>
+          </div>
+
+          {(errorMessage || form.formState.errors.word) && (
+            <div className="flex items-center gap-3 px-6 py-3 glass border-destructive/20 rounded-2xl animate-in slide-in-from-top-2 duration-500">
+              <AlertCircle className="h-4 w-4 text-destructive" />
+              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-destructive leading-none">
+                {errorMessage || form.formState.errors.word?.message}
+              </p>
+            </div>
+          )}
         </div>
-        {(errorMessage || form.formState.errors.word) && (
-          <p className="mt-2 text-sm text-red-500 font-medium animate-in fade-in slide-in-from-top-1">
-            {errorMessage || form.formState.errors.word?.message}
-          </p>
-        )}
       </form>
     </Form>
   );

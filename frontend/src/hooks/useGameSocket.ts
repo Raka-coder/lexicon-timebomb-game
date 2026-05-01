@@ -1,6 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Socket } from "socket.io-client";
 import { useGameStore } from "../stores/gameStore";
+import { sfx } from "@/lib/sfx";
+import { toast } from "sonner";
 
 export function useGameSocket(socket: Socket | null) {
   if (!socket) return;
@@ -17,8 +19,11 @@ export function useGameSocket(socket: Socket | null) {
     setTimeLeft,
     setIsMyTurn,
     setError,
+    resetGameState,
     myPlayerId,
   } = useGameStore();
+
+  const prevTimeRef = useRef<number>(15);
 
   useEffect(() => {
     socket.on("ROOM_CREATED", ({ roomCode, playerId, isHost }) => {
@@ -26,6 +31,7 @@ export function useGameSocket(socket: Socket | null) {
       setRoom(roomCode, playerId, isHost);
       setGameStatus("waiting");
       setPlayers([{ id: playerId, name: "Kamu", isHost }]);
+      toast.success("Ruangan berhasil dibuat!");
     });
 
     socket.on("ROOM_JOINED", ({ roomCode, playerId, isHost }) => {
@@ -33,11 +39,17 @@ export function useGameSocket(socket: Socket | null) {
       setRoom(roomCode, playerId, isHost);
       setGameStatus("waiting");
       setPlayers([{ id: playerId, name: "Kamu", isHost: false }]);
+      toast.success("Berhasil masuk ruangan!");
     });
 
     socket.on("PLAYER_JOINED", ({ players }) => {
       console.log(">> PLAYER_JOINED:", JSON.stringify(players));
       if (players && players.length > 0) {
+        const myId = useGameStore.getState().myPlayerId;
+        const newPlayer = players.find((p: any) => p.id !== myId);
+        if (newPlayer && players.length > useGameStore.getState().players.length) {
+          toast.info(`${newPlayer.name} bergabung ke ruangan`);
+        }
         setPlayers(players);
       }
     });
@@ -45,38 +57,50 @@ export function useGameSocket(socket: Socket | null) {
     socket.on("PLAYER_LEFT", ({ players, message }) => {
       console.log("PLAYER_LEFT:", message);
       setPlayers(players);
+      toast.error("Pemain telah keluar dari ruangan");
       if (message) setError(message);
     });
 
     socket.on("ROOM_ERROR", ({ message }) => {
       console.log("ROOM_ERROR:", message);
+      toast.error(message);
       setError(message);
     });
 
     socket.on("GAME_STARTED", ({ players, currentWord, requiredLetter, currentPlayerId, scores }) => {
-      console.log(">> GAME_STARTED:", { currentWord, requiredLetter, currentPlayerId });
+      const currentMyPlayerId = useGameStore.getState().myPlayerId;
+      console.log(">> GAME_STARTED:", { currentWord, requiredLetter, currentPlayerId, myPlayerId: currentMyPlayerId });
+      sfx.playPing();
+      resetGameState();
       setGameStatus("playing");
       setPlayers(players);
       setCurrentWord(currentWord || "");
       setRequiredLetter(requiredLetter || "");
       setCurrentPlayer(currentPlayerId);
       setScores(scores || {});
-      setIsMyTurn(currentPlayerId === myPlayerId);
+      const amIPlaying = currentPlayerId === currentMyPlayerId;
+      console.log(">> isMyTurn:", amIPlaying, "currentPlayerId:", currentPlayerId, "myPlayerId:", currentMyPlayerId);
+      setIsMyTurn(amIPlaying);
       setTimeLeft(15);
+      toast.success("Permainan dimulai!");
     });
 
     socket.on("TURN_START", ({ currentPlayerId, currentWord, requiredLetter, scores }) => {
-      console.log(">> TURN_START:", currentPlayerId, currentWord, requiredLetter);
+      const currentMyPlayerId = useGameStore.getState().myPlayerId;
+      console.log(">> TURN_START:", currentPlayerId, currentWord, requiredLetter, "myPlayerId:", currentMyPlayerId);
       setCurrentWord(currentWord || "");
       setRequiredLetter(requiredLetter || "");
       setCurrentPlayer(currentPlayerId);
       setScores(scores || {});
-      setIsMyTurn(currentPlayerId === myPlayerId);
+      const amIPlaying = currentPlayerId === currentMyPlayerId;
+      console.log(">> TURN isMyTurn:", amIPlaying);
+      setIsMyTurn(amIPlaying);
       setTimeLeft(15);
     });
 
     socket.on("WORD_VALID", ({ word, nextLetter, scores, currentPlayerId }) => {
       console.log(">> WORD_VALID:", word, nextLetter);
+      sfx.playPing();
       addWordToHistory(word);
       setCurrentWord(word);
       setRequiredLetter(nextLetter || "");
@@ -91,6 +115,7 @@ export function useGameSocket(socket: Socket | null) {
 
     socket.on("WORD_INVALID", ({ word, reason }) => {
       console.log("WORD_INVALID:", reason, word);
+      sfx.playError();
       const messages: Record<string, string> = {
         not_your_turn: "Belum giliranmu!",
         too_short: "Kata minimal 3 huruf",
@@ -98,21 +123,43 @@ export function useGameSocket(socket: Socket | null) {
         duplicate_word: "Kata sudah digunakan",
         not_in_dictionary: `Kata "${word}" tidak ditemukan di KBBI`,
       };
-      setError(messages[reason] || "Kata tidak valid");
+      const errorMessage = messages[reason] || "Kata tidak valid";
+      setError(errorMessage);
+      toast.error(errorMessage, { id: "word-error" }); // prevent duplicate toasts
     });
 
     socket.on("TIMER_SYNC", ({ timeLeft }) => {
+      const currentIsMyTurn = useGameStore.getState().isMyTurn;
+      if (timeLeft <= 4 && timeLeft > 0 && prevTimeRef.current > 4 && currentIsMyTurn) {
+        sfx.playTick();
+      }
+      prevTimeRef.current = timeLeft;
       setTimeLeft(timeLeft);
     });
 
-    socket.on("GAME_OVER", ({ winnerId, loserId, reason, scores, wordHistory }) => {
-      console.log(">> GAME_OVER:", { winnerId, loserId, reason });
+    socket.on("GAME_OVER", ({ winnerId, loserId, scores }) => {
+      console.log(">> GAME_OVER:", { winnerId, loserId });
+      sfx.playBoom();
       setGameStatus("finished");
       setScores(scores || {});
-      if (winnerId === myPlayerId) {
+      if (winnerId === useGameStore.getState().myPlayerId) {
+        sfx.playSuccess();
+        toast.success("Selamat! Kamu menang! 🎉", { duration: 5000 });
         setError("Selamat! Kamu menang! 🎉");
-      } else if (loserId === myPlayerId) {
+      } else if (loserId === useGameStore.getState().myPlayerId) {
+        toast.error("Waktu habis! Kamu kalah! 💥", { duration: 5000 });
         setError("Waktu habis! Kamu kalah! 💥");
+      } else {
+        toast.info("Permainan selesai!", { duration: 5000 });
+      }
+    });
+
+    socket.on("ROOM_RESET", ({ status }) => {
+      console.log(">> ROOM_RESET:", status);
+      if (status === "waiting") {
+        setGameStatus("waiting");
+        resetGameState();
+        toast.info("Ruangan telah di-reset untuk main lagi");
       }
     });
 
@@ -128,6 +175,7 @@ export function useGameSocket(socket: Socket | null) {
       socket.off("WORD_INVALID");
       socket.off("TIMER_SYNC");
       socket.off("GAME_OVER");
+      socket.off("ROOM_RESET");
     };
-  }, [socket, myPlayerId, setGameStatus, setPlayers, setError]);
+  }, [socket, myPlayerId, setIsMyTurn, setGameStatus, setPlayers, setError, setTimeLeft, addWordToHistory, setCurrentWord, setRequiredLetter, setCurrentPlayer, setScores, resetGameState, setRoom]);
 }

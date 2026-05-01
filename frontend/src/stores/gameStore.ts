@@ -39,6 +39,7 @@ interface GameState {
   setError: (message: string | null) => void;
   setIsValidating: (validating: boolean) => void;
   reset: () => void;
+  resetGameState: () => void;
 }
 
 const initialState = {
@@ -101,4 +102,17 @@ export const useGameStore = create<GameState>((set) => ({
   setIsValidating: (validating) => set({ isValidating: validating }),
 
   reset: () => set(initialState),
+
+  resetGameState: () => set({
+    currentWord: "",
+    requiredLetter: "",
+    wordHistory: [],
+    currentPlayerId: null,
+    scores: {},
+    timeLeft: 15,
+    isMyTurn: false,
+    errorMessage: null,
+    isValidating: false,
+    gameStatus: "playing",
+  }),
 }));

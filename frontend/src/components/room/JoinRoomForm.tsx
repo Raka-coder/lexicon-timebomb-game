@@ -4,9 +4,9 @@ import * as z from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { useState } from "react";
+import { LogIn, Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   playerName: z.string().min(2, "Nama minimal 2 karakter").max(20, "Nama maksimal 20 karakter"),
@@ -30,7 +30,6 @@ export function JoinRoomForm({ onJoinRoom }: Props) {
     },
   });
 
-  // TanStack Query to check room existence
   const { refetch, isFetching } = useQuery({
     queryKey: ["room", checkingCode],
     queryFn: async () => {
@@ -45,11 +44,10 @@ export function JoinRoomForm({ onJoinRoom }: Props) {
     const code = values.roomCode.toUpperCase();
     setCheckingCode(code);
     
-    // Explicitly refetch to check room before joining
     const { data, isError } = await refetch();
 
     if (isError || !data?.exists) {
-      form.setError("roomCode", { message: "Room tidak ditemukan atau sudah penuh" });
+      form.setError("roomCode", { message: "Terminal ID not found or saturated" });
       return;
     }
 
@@ -57,57 +55,57 @@ export function JoinRoomForm({ onJoinRoom }: Props) {
   }
 
   return (
-    <Card className="w-full max-w-md bg-doom-card border-doom">
-      <CardHeader>
-        <CardTitle className="text-doom-cyan text-2xl font-bold">Gabung ke Room</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="playerName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input
-                      placeholder="Nama kamu"
-                      {...field}
-                      className="bg-background border-doom h-12 text-lg"
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-400" />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="roomCode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormControl>
-                    <Input
-                      placeholder="Kode Room"
-                      {...field}
-                      maxLength={5}
-                      onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                      className="bg-background border-doom h-12 text-lg font-mono uppercase"
-                    />
-                  </FormControl>
-                  <FormMessage className="text-red-400" />
-                </FormItem>
-              )}
-            />
-            <Button 
-              type="submit" 
-              disabled={isFetching}
-              className="w-full bg-doom-cyan text-black hover:bg-doom-cyan/80 h-12 text-lg font-bold transition-all"
-            >
-              {isFetching ? "Mengecek..." : "Gabung"}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="playerName"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input
+                    placeholder="Enter alias..."
+                    {...field}
+                    className="bg-white/5 border-white/5 h-12 md:h-14 text-sm font-bold tracking-widest uppercase rounded-2xl focus:bg-white/10 transition-all"
+                  />
+                </FormControl>
+                <FormMessage className="text-destructive font-mono text-[10px] uppercase tracking-widest" />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="roomCode"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input
+                    placeholder="Terminal ID"
+                    {...field}
+                    maxLength={5}
+                    onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                    className="bg-white/5 border-white/5 h-12 md:h-14 text-sm font-black font-mono tracking-[0.2em] uppercase rounded-2xl focus:bg-white/10 transition-all text-accent"
+                  />
+                </FormControl>
+                <FormMessage className="text-destructive font-mono text-[10px] uppercase tracking-widest" />
+              </FormItem>
+            )}
+          />
+        </div>
+        <Button 
+          type="submit" 
+          disabled={isFetching}
+          className="w-full bg-white/5 border-white/5 hover:bg-white/10 text-white h-12 md:h-14 rounded-2xl text-xs font-black uppercase tracking-[0.2em] flex items-center gap-2 transition-all active:scale-95"
+        >
+          {isFetching ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <LogIn className="h-4 w-4" />
+          )}
+          {isFetching ? "Syncing..." : "Inject Connection"}
+        </Button>
+      </form>
+    </Form>
   );
 }

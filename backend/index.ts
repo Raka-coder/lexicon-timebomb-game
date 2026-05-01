@@ -164,8 +164,11 @@ io.on("connection", (socket) => {
         wordHistory: gameState.wordHistory,
       });
 
-      room.status = "finished";
+      room.status = "waiting";
+      room.gameState = undefined;
       timerManager.stopTurn(room.code);
+      
+      io.to(room.code).emit("ROOM_RESET", { status: "waiting" });
     });
 
     console.log(`Game started in room ${room.code} with word: ${startWord}`);
@@ -240,7 +243,7 @@ io.on("connection", (socket) => {
       scores: gameState.scores,
     });
 
-    timerManager.startTurn(room.code, nextPlayerId, () => {
+timerManager.startTurn(room.code, nextPlayerId, () => {
       const loserId = nextPlayerId;
       const winnerId = playerIds.find((id) => id !== loserId);
 
@@ -252,8 +255,24 @@ io.on("connection", (socket) => {
         wordHistory: gameState.wordHistory,
       });
 
-      room.status = "finished";
+      room.status = "waiting";
+      room.gameState = undefined;
+      timerManager.stopTurn(room.code);
+      
+      io.to(room.code).emit("ROOM_RESET", { status: "waiting" });
     });
+  });
+
+  socket.on("RESET_ROOM", () => {
+    const room = getRoomBySocketId(socket.id);
+    if (!room) return;
+    
+    room.status = "waiting";
+    room.gameState = undefined;
+    timerManager.stopTurn(room.code);
+    
+    io.to(room.code).emit("ROOM_RESET", { status: "waiting" });
+    console.log(`Room ${room.code} reset to waiting`);
   });
 
   socket.on("disconnect", () => {
@@ -270,7 +289,9 @@ io.on("connection", (socket) => {
             scores: room.gameState?.scores || {},
             wordHistory: room.gameState?.wordHistory || [],
           });
-          room.status = "finished";
+          room.status = "waiting";
+          room.gameState = undefined;
+          io.to(room.code).emit("ROOM_RESET", { status: "waiting" });
         }
       } else {
         const players = Array.from(room.players.values()).map((p) => ({
