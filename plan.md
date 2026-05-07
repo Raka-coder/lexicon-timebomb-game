@@ -1,21 +1,8 @@
-  ➜  Local:   http://localhost:5173/
-  ➜  Network: use --host to expose
-  ➜  press h + enter to show help
-10:34:31 AM [vite] (client) Pre-transform error: [BabelError] /home/rakarestu/Documents/uas-webprog/frontend/src/pages/GamePage.tsx: Unexpected token (66:2)
+Perbaiki agar sistem memberitahu pemain untuk memulai permainan tebak kata disaat permainan baru dimulai mengikuti giliran pemain
 
-  64 |       return () => clearTimeout(timer);
-  65 |     }
-> 66 |   }, [gameStatus, navigate]);
-     |   ^
-  67 |
-  68 |   const handleSubmitWord = (word: string) => {
-  69 |     socket?.emit("SUBMIT_WORD", { word });
-10:34:31 AM [vite] Internal server error: [BabelError] /home/rakarestu/Documents/uas-webprog/frontend/src/pages/GamePage.tsx: Unexpected token (66:2)
+saya jalankan uji coba di local sebagai pembuat room, pada layar saya harus mulai bermain, tetapi tidak bisa input kata karena bukan giliran saya, saya coba di tab sebagai player pun saya tidak bisa input kata karena belum gilirannya, jadi tidak bisa input kata apapun, bug itu masih terjadi, perbaiki agar bisa berjalan kembali
 
-  64 |       return () => clearTimeout(timer);
-  65 |     }
-> 66 |   }, [gameStatus, navigate]);
-     |   ^
-  67 |
-  68 |   const handleSubmitWord = (word: string) => {
-  69 |     socket?.emit("SUBMIT_WORD", { word });
+Tambahkan fitur modal/pop-up ketika waktu permainan sudah habis dengan opsi untuk memulai kembali dan keluar dari permainan, selama ini masih bug dan error ketika permainan selesai tidak bisa apa-apa/input
+
+pastikan fitur redirect route berfungsi dengan baik ketika permainan diakhiri
+

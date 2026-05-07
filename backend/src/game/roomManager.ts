@@ -1,29 +1,13 @@
 import type { Server, Socket } from "socket.io";
-import type { GameState } from "./gameLogic";
-
-export interface Player {
-  id: string;
-  name: string;
-  socketId: string;
-  isHost: boolean;
-}
-
-export interface Room {
-  code: string;
-  players: Map<string, Player>;
-  hostSocketId: string;
-  status: "waiting" | "playing" | "finished";
-  gameState?: GameState;
-}
+import type { Player, Room, GameState } from "../types";
+import { CONFIG } from "../lib/constants";
 
 const rooms = new Map<string, Room>();
-
-const AVOID_LETTERS = ["0", "O", "1", "I"];
 
 function generateRoomCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let code = "";
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < CONFIG.ROOM_CODE_LENGTH; i++) {
     code += chars[Math.floor(Math.random() * chars.length)];
   }
   return code;

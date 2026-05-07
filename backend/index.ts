@@ -24,18 +24,22 @@ app.use("*", async (c, next) => {
 });
 
 const server = createServer((req, res) => {
-  const url = new URL(req.url || "/", `http://localhost:3001`);
-  
   const headers = new Headers();
-  for (const [k, v] of Object.entries(req.headers)) if (v) headers.set(k, v);
+  for (const [k, v] of Object.entries(req.headers)) {
+    if (v) {
+      const value = Array.isArray(v) ? v.join(", ") : v;
+      headers.set(k, value);
+    }
+  }
   
-  const protocol = req.connection.encrypted ? "https" : "http";
+  const protocol = (req.socket as any).encrypted ? "https" : "http";
   const fullUrl = `${protocol}://${req.headers.host}${req.url}`;
   
-  const bodyReader = ["GET", "HEAD"].includes(req.method) ? null : req;
+  const method = req.method || "GET";
+  const bodyReader = ["GET", "HEAD"].includes(method) ? null : req;
   
-  app.fetch(new Request(fullUrl, { method: req.method, headers, body: bodyReader }))
-    .then(response => {
+  Promise.resolve(app.fetch(new Request(fullUrl, { method, headers, body: bodyReader as any })))
+    .then((response: Response) => {
       res.writeHead(response.status, {
         ...Object.fromEntries(response.headers),
         "Access-Control-Allow-Origin": "*",
@@ -44,7 +48,7 @@ const server = createServer((req, res) => {
       });
       return response.text();
     })
-    .then(text => res.end(text))
+    .then((text: string) => res.end(text))
     .catch(() => { res.writeHead(500); res.end("Error"); });
 });
 

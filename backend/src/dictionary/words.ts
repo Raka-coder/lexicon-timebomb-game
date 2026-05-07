@@ -45,6 +45,10 @@ export function validateWord(word: string): ValidationResult {
   return { valid: false, source: "offline" };
 }
 
+export function getRandomWord(): string {
+  return getRandomStartWord();
+}
+
 export function getRandomStartWord(): string {
   const words = loadWordSet();
   const candidates = [...words].filter(
