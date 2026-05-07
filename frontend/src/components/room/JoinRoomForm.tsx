@@ -1,12 +1,11 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useQuery } from "@tanstack/react-query";
+// import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { useState } from "react";
-import { LogIn, Loader2 } from "lucide-react";
+import { LogIn } from "lucide-react";
 
 const formSchema = z.object({
   playerName: z.string().min(2, "Nama minimal 2 karakter").max(20, "Nama maksimal 20 karakter"),
@@ -20,8 +19,6 @@ interface Props {
 const API_URL = import.meta.env.VITE_WS_URL || "http://localhost:3001";
 
 export function JoinRoomForm({ onJoinRoom }: Props) {
-  const [checkingCode, setCheckingCode] = useState<string | null>(null);
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -30,27 +27,19 @@ export function JoinRoomForm({ onJoinRoom }: Props) {
     },
   });
 
-  const { refetch, isFetching } = useQuery({
-    queryKey: ["room", checkingCode],
-    queryFn: async () => {
-      const res = await fetch(`${API_URL}/api/room/${checkingCode}`);
-      if (!res.ok) throw new Error("Gagal mengecek room");
-      return res.json();
-    },
-    enabled: false,
-  });
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const code = values.roomCode.toUpperCase();
-    setCheckingCode(code);
     
-    const { data, isError } = await refetch();
-
-    if (isError || !data?.exists) {
+    // Validate room exists before joining
+    const res = await fetch(`${API_URL}/api/room/${code}`);
+    const data = await res.json();
+    
+    if (!res.ok || !data?.exists) {
       form.setError("roomCode", { message: "Terminal ID not found or saturated" });
       return;
     }
 
+    // Directly join - no second click needed
     onJoinRoom(code, values.playerName.trim());
   }
 
@@ -95,15 +84,10 @@ export function JoinRoomForm({ onJoinRoom }: Props) {
         </div>
         <Button 
           type="submit" 
-          disabled={isFetching}
           className="w-full bg-white/5 border-white/5 hover:bg-white/10 text-white h-12 md:h-14 rounded-2xl text-xs font-black uppercase tracking-[0.2em] flex items-center gap-2 transition-all active:scale-95"
         >
-          {isFetching ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <LogIn className="h-4 w-4" />
-          )}
-          {isFetching ? "Syncing..." : "Inject Connection"}
+          <LogIn className="h-4 w-4" />
+          Inject Connection
         </Button>
       </form>
     </Form>

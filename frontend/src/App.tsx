@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LandingPage } from "./pages/LandingPage";
+import { PlayPage } from "./pages/PlayPage";
 import { LobbyPage } from "./pages/LobbyPage";
 import { GamePage } from "./pages/GamePage";
 import { useSocket } from "@/hooks/useSocket";
@@ -14,6 +15,7 @@ function AppContent() {
     <>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/play" element={<PlayPage />} />
         <Route path="/lobby" element={<LobbyPage />} />
         <Route path="/game" element={<GamePage />} />
       </Routes>

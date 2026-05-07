@@ -5,8 +5,9 @@ import { useGameStore } from "@/stores/gameStore";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
-import { useEffect, useRef } from "react";
-import { Send, Zap, AlertCircle, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Send, Zap, AlertCircle, Loader2, Bell } from "lucide-react";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   word: z.string().min(3, "Minimum 3 characters"),
@@ -17,9 +18,11 @@ interface Props {
 }
 
 export function WordInput({ onSubmit }: Props) {
-  const { isMyTurn, isValidating, requiredLetter, errorMessage, setError } =
+  const { isMyTurn, isValidating, requiredLetter, errorMessage, setError, players, currentPlayer } =
     useGameStore();
   const inputRef = useRef<HTMLInputElement>(null);
+  const [justStartedTurn, setJustStartedTurn] = useState(false);
+  const hasNotifiedRef = useRef(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -34,6 +37,7 @@ export function WordInput({ onSubmit }: Props) {
     }
   }, [isValidating, form]);
 
+  // Auto-focus when it's my turn
   useEffect(() => {
     if (isMyTurn && !isValidating && inputRef.current) {
       setTimeout(() => {
@@ -41,6 +45,25 @@ export function WordInput({ onSubmit }: Props) {
       }, 50);
     }
   }, [isMyTurn, isValidating]);
+
+  // Show notification when turn changes to me
+  useEffect(() => {
+    if (isMyTurn && !hasNotifiedRef.current) {
+      hasNotifiedRef.current = true;
+      setJustStartedTurn(true);
+      toast.info("Giliranmu! Masukkan kata sekarang!", {
+        duration: 2000,
+        style: {
+          background: 'var(--primary)',
+          border: '1px solid var(--accent)',
+          color: 'white',
+        },
+      });
+      setTimeout(() => setJustStartedTurn(false), 2000);
+    } else if (!isMyTurn) {
+      hasNotifiedRef.current = false;
+    }
+  }, [isMyTurn]);
 
   const onFormSubmit = (values: z.infer<typeof formSchema>) => {
     if (!isMyTurn || isValidating) return;
@@ -58,10 +81,35 @@ export function WordInput({ onSubmit }: Props) {
     }, 50);
   };
 
+  const currentPlayerName = players.find(p => p.id === currentPlayer)?.name || "Player";
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onFormSubmit)} className="w-full max-w-xl">
         <div className="flex flex-col gap-4">
+          {/* Turn Notification */}
+          <div className={`flex items-center justify-center gap-3 px-6 py-3 glass rounded-2xl transition-all duration-500 ${
+            isMyTurn 
+              ? "border-primary/40 bg-primary/10 animate-pulse" 
+              : "border-white/5 opacity-60"
+          }`}>
+            {isMyTurn ? (
+              <>
+                <Bell className="h-4 w-4 text-primary fill-primary animate-bounce" />
+                <span className="text-sm font-black text-primary uppercase tracking-wider">
+                  Giliranmu! Masukkan kata sekarang
+                </span>
+              </>
+            ) : (
+              <>
+                <div className="h-2 w-2 rounded-full bg-white/20 animate-pulse" />
+                <span className="text-sm font-black text-white/40 uppercase tracking-wider">
+                  Menunggu {currentPlayerName}...
+                </span>
+              </>
+            )}
+          </div>
+
           <div className="flex gap-3">
             <FormField
               control={form.control}

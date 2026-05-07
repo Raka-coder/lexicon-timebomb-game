@@ -1,80 +1,30 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSocket } from "@/hooks/useSocket";
 import { useGameStore } from "@/stores/gameStore";
-import { CreateRoomForm } from "@/components/room/CreateRoomForm";
-import { JoinRoomForm } from "@/components/room/JoinRoomForm";
-import { Shield, Zap, Globe, Sparkles } from "lucide-react";
+import { Shield, Zap, Globe, Sparkles, Play, LogIn } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function LandingPage() {
   const { socket, isConnected } = useSocket();
-  const { roomCode, gameStatus, players, reset } = useGameStore();
+  const { gameStatus, reset } = useGameStore();
   const navigate = useNavigate();
-  const [joining, setJoining] = useState(false);
-  const navigatedRef = useRef(false);
   const hasResetRef = useRef(false);
 
   useEffect(() => {
     if (!hasResetRef.current && gameStatus === "finished") {
       reset();
       hasResetRef.current = true;
-      navigatedRef.current = false;
-      setJoining(false);
     }
     
-    if (!roomCode && gameStatus === "idle") {
+    if (gameStatus === "idle") {
       hasResetRef.current = false;
     }
-  }, [gameStatus, roomCode, reset]);
+  }, [gameStatus, reset]);
 
-  useEffect(() => {
-    if (gameStatus === "playing") {
-      navigatedRef.current = true;
-      navigate("/game");
-    }
-  }, [gameStatus, navigate]);
-
-  useEffect(() => {
-    if (navigatedRef.current) return;
-    
-    if (roomCode && gameStatus === "waiting" && players.length > 0) {
-      navigatedRef.current = true;
-      setJoining(false);
-      navigate("/lobby");
-    }
-  }, [roomCode, gameStatus, players.length, navigate]);
-
-  const handleCreateRoom = (playerName: string) => {
-    if (!isConnected || joining) return;
-    navigatedRef.current = false;
-    setJoining(true);
-    socket.emit("CREATE_ROOM", { playerName });
+  const handleStart = (mode: "create" | "join") => {
+    navigate(`/play?mode=${mode}`);
   };
-
-  const handleJoinRoom = (roomCode: string, playerName: string) => {
-    if (!isConnected || joining) return;
-    navigatedRef.current = false;
-    setJoining(true);
-    socket.emit("JOIN_ROOM", { roomCode, playerName });
-  };
-
-  if (joining && !roomCode) {
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 gap-8 relative overflow-hidden">
-        <div className="absolute inset-0 bg-scanlines opacity-5 pointer-events-none" />
-        <div className="relative z-10 flex flex-col items-center gap-6">
-          <div className="relative">
-            <div className="w-24 h-24 border-2 border-primary/20 rounded-full animate-ping absolute inset-0" />
-            <div className="w-24 h-24 border-4 border-primary border-t-transparent rounded-full animate-spin relative z-10 shadow-[0_0_30px_var(--primary)]" />
-          </div>
-          <div className="text-center space-y-2">
-            <h2 className="text-2xl font-black text-white glow-text-purple tracking-tighter uppercase">Initializing Sequence</h2>
-            <p className="text-primary/60 font-mono text-xs animate-pulse tracking-[0.3em] uppercase">Securing Neural Link...</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 md:p-8 relative overflow-hidden">
@@ -98,7 +48,7 @@ export function LandingPage() {
             
             <h1 className="text-6xl md:text-8xl xl:text-9xl font-black leading-[0.9] tracking-tighter text-white">
               LEXICON<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent glow-text-purple">TIMEBOMB</span>
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-accent glow-text-purple">TIMEBOMB</span>
             </h1>
             
             <p className="text-lg md:text-xl text-muted-foreground font-medium max-w-xl mx-auto lg:mx-0 leading-relaxed">
@@ -128,16 +78,24 @@ export function LandingPage() {
             <div className="bg-background/40 backdrop-blur-2xl rounded-[2.4rem] p-2 space-y-4">
                <div className="p-6 md:p-8 space-y-8">
                   <div className="space-y-6">
-                    <h3 className="text-xs font-black text-primary uppercase tracking-[0.4em] text-center">Inhibit Access</h3>
+                    <h3 className="text-xs font-black text-primary uppercase tracking-[0.4em] text-center">Initialize Protocol</h3>
                     <div className="space-y-4">
-                      <CreateRoomForm onCreateRoom={handleCreateRoom} />
-                      <div className="relative py-4">
-                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5"></div></div>
-                        <div className="relative flex justify-center text-[10px] font-black uppercase tracking-widest">
-                          <span className="bg-transparent px-4 text-muted-foreground/40 backdrop-blur-sm">System Override</span>
-                        </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <Button
+                          onClick={() => handleStart("create")}
+                          className="w-full h-16 btn-stitch text-white font-black text-sm uppercase tracking-wider flex flex-col items-center gap-1 rounded-2xl"
+                        >
+                          <Play className="h-5 w-5" />
+                          <span>Create</span>
+                        </Button>
+                        <Button
+                          onClick={() => handleStart("join")}
+                          className="w-full h-16 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black text-sm uppercase tracking-wider flex flex-col items-center gap-1 rounded-2xl transition-all active:scale-95"
+                        >
+                          <LogIn className="h-5 w-5" />
+                          <span>Join</span>
+                        </Button>
                       </div>
-                      <JoinRoomForm onJoinRoom={handleJoinRoom} />
                     </div>
                   </div>
                </div>
