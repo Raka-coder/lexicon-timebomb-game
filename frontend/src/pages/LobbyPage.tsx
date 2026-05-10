@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useGameStore } from "@/stores/gameStore";
 import { WaitingLobby } from "@/components/room/WaitingLobby";
 import { useSocket } from "@/hooks/useSocket";
+import { Button } from "@/components/ui/button";
 
 export function LobbyPage() {
-  const { roomCode, players, gameStatus } = useGameStore();
+  const { roomCode, players, gameStatus, reset } = useGameStore();
   const { socket, isConnected } = useSocket();
   const navigate = useNavigate();
   
@@ -22,6 +23,12 @@ export function LobbyPage() {
   if (!roomCode && gameStatus === "idle") {
     return null;
   }
+
+  const handleLeaveToLanding = () => {
+    socket?.emit("EXIT_GAME");
+    reset();
+    navigate("/");
+  };
 
   return (
     <div className="min-h-screen bg-doom-dark flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -42,8 +49,15 @@ export function LobbyPage() {
             <p className="font-mono text-[10px] text-doom-cyan uppercase tracking-widest animate-pulse">MEMUAT DATA RUANGAN: {roomCode || "..."}</p>
           </div>
         ) : (
-          <div className="w-full animate-in fade-in zoom-in duration-300">
+          <div className="w-full animate-in fade-in zoom-in duration-300 space-y-6">
             <WaitingLobby socket={socket} />
+            <Button
+              variant="ghost"
+              onClick={handleLeaveToLanding}
+              className="w-full h-12 glass border-white/10 text-white/60 hover:text-white hover:border-primary/40 rounded-2xl transition-all"
+            >
+              Kembali ke Landing Page
+            </Button>
           </div>
         )}
 

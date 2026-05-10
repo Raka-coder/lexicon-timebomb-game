@@ -31,12 +31,12 @@ export function initGameState(
   };
 }
 
-export function getHostFirstPlayerId(playerIds: string[], hostSocketId?: string): string | null {
+export function getHostFirstPlayerId(playerIds: string[], hostPlayerId?: string | null): string | null {
   if (playerIds.length === 0) return null;
-  if (hostSocketId && playerIds.includes(hostSocketId)) {
-    return hostSocketId;
+  if (hostPlayerId && playerIds.includes(hostPlayerId)) {
+    return hostPlayerId;
   }
-  return playerIds[0];
+  return playerIds[0] ?? null;
 }
 
 export function validateWord(

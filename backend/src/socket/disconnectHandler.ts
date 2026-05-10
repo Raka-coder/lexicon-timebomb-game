@@ -13,6 +13,7 @@ export function setupDisconnectHandler(io: Server, socket: Socket, timerManager:
 
     if (room.status === "playing") {
       timerManager.stopTurn(room.code);
+      room.status = "finished";
       const playerIds = Array.from(room.players.values()).map((p) => p.id);
       
       if (playerIds.length > 0) {
@@ -22,11 +23,9 @@ export function setupDisconnectHandler(io: Server, socket: Socket, timerManager:
           reason: "disconnect",
           scores: room.gameState?.scores || {},
           wordHistory: room.gameState?.wordHistory || [],
+          roomStatus: "playing",
         };
         io.to(room.code).emit("GAME_OVER", gameOverPayload);
-        
-        room.status = "waiting";
-        room.gameState = undefined;
       }
     } else {
       const players: PlayerInfo[] = Array.from(room.players.values()).map((p) => ({

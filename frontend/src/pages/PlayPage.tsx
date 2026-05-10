@@ -10,7 +10,7 @@ import { toast } from "sonner";
 
 export function PlayPage() {
   const { socket, isConnected } = useSocket();
-  const { roomCode, gameStatus, players, reset } = useGameStore();
+  const { roomCode, gameStatus, players } = useGameStore();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const mode = searchParams.get("mode") as "create" | "join" || "create";
@@ -40,14 +40,6 @@ export function PlayPage() {
       navigatedRef.current = false;
     }
   }, [roomCode, gameStatus, players.length, isConnected, navigate]);
-
-  useEffect(() => {
-    if (gameStatus === "finished") {
-      reset();
-      navigatedRef.current = false;
-      setJoining(false);
-    }
-  }, [gameStatus, reset]);
 
   const handleCreateRoom = (playerName: string) => {
     if (!isConnected || joining) return;

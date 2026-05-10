@@ -26,7 +26,8 @@ export function GamePage() {
     errorMessage,
     winnerId,
     loserId,
-    reset
+    reset,
+    resetGameState
   } = useGameStore();
   const [muted, setMuted] = useState(sfx.isMuted());
 
@@ -55,8 +56,8 @@ export function GamePage() {
 
   const handleExitGame = () => {
     socket?.emit("EXIT_GAME");
-    reset();
-    navigate("/");
+    resetGameState();
+    navigate("/lobby");
   };
 
   if (gameStatus !== "playing" && gameStatus !== "finished") {
@@ -76,6 +77,7 @@ export function GamePage() {
       </div>
     );
   }
+
 
   const isWinner = myPlayerId && winnerId ? myPlayerId === winnerId : errorMessage?.includes("menang") || false;
 

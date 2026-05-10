@@ -170,14 +170,10 @@ export function useGameSocket(socket: Socket | null) {
 
     socket.on("ROOM_RESET", ({ status }) => {
       console.log(">> ROOM_RESET:", status);
-      const currentGameStatus = useGameStore.getState().gameStatus;
-      
-      if (currentGameStatus === "finished") {
-        return;
-      }
-      
       if (status === "waiting") {
         resetGameState();
+        setGameStatus("waiting");
+        setWinnerLoser(null, null);
         toast.info("Ruangan telah di-reset untuk main lagi");
       }
     });

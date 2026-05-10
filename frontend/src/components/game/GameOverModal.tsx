@@ -39,6 +39,7 @@ export function GameOverModal({
       <DialogContent
         className="glass border-white/10 p-0 overflow-hidden w-[90vw] max-w-md mx-auto"
         showCloseButton={false}
+        onOpenAutoFocus={(event) => event.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
         onPointerDownOutside={(e) => e.preventDefault()}
         onInteractOutside={(e) => e.preventDefault()}

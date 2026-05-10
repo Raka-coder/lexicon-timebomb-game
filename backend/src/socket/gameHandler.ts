@@ -39,9 +39,10 @@ export function setupGameHandlers(io: Server, socket: Socket, timerManager: Time
       return;
     }
 
-    const playerIds = Array.from(room.players.values()).map((p) => p.id);
-    const hostSocketId = room.hostSocketId;
-    const firstPlayerId = getHostFirstPlayerId(playerIds, hostSocketId);
+    const playersArray = Array.from(room.players.values());
+    const playerIds = playersArray.map((p) => p.id);
+    const hostPlayerId = room.players.get(room.hostSocketId)?.id ?? null;
+    const firstPlayerId = getHostFirstPlayerId(playerIds, hostPlayerId);
     
     if (!firstPlayerId) {
       console.log("START_GAME failed: no first player found");
@@ -80,6 +81,7 @@ export function setupGameHandlers(io: Server, socket: Socket, timerManager: Time
     console.log(`Game started in room ${room.code}, first player (host): ${firstPlayerId}`);
 
     timerManager.startTurn(room.code, firstPlayerId, () => {
+      room.status = "finished";
       const loserId = gameState.currentPlayerId ?? "";
       const winnerId = playerIds.find((id) => id !== loserId) ?? "";
 
@@ -91,6 +93,7 @@ export function setupGameHandlers(io: Server, socket: Socket, timerManager: Time
         wordHistory: gameState.wordHistory,
         roomStatus: "playing",
       };
+      timerManager.stopTurn(room.code);
       io.to(room.code).emit("GAME_OVER", gameOverPayload);
     });
   });
@@ -178,6 +181,7 @@ export function setupGameHandlers(io: Server, socket: Socket, timerManager: Time
     io.to(room.code).emit("TURN_START", turnStartPayload);
 
     timerManager.startTurn(room.code, nextPlayerId, () => {
+      room.status = "finished";
       const loserId = nextPlayerId;
       const winnerId = playerIds.find((id) => id !== loserId) ?? "";
 
@@ -189,6 +193,7 @@ export function setupGameHandlers(io: Server, socket: Socket, timerManager: Time
         wordHistory: gameState.wordHistory,
         roomStatus: "playing",
       };
+      timerManager.stopTurn(room.code);
       io.to(room.code).emit("GAME_OVER", gameOverPayload);
     });
 
@@ -199,6 +204,11 @@ export function setupGameHandlers(io: Server, socket: Socket, timerManager: Time
     console.log(`RESTART_GAME request from ${socket.id}`);
     const room = getRoomBySocketId(socket.id);
     if (!room) return;
+
+    if (room.status !== "finished") {
+      console.log("RESTART_GAME ignored: room not finished");
+      return;
+    }
 
     // Reset room to waiting state and notify all players
     room.status = "waiting";
