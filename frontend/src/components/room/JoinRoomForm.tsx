@@ -1,14 +1,23 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-// import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
 import { LogIn } from "lucide-react";
+import { getDefaultServerUrl } from "@/hooks/useSocket";
 
 const formSchema = z.object({
-  playerName: z.string().min(2, "Nama minimal 2 karakter").max(20, "Nama maksimal 20 karakter"),
+  playerName: z
+    .string()
+    .min(2, "Nama minimal 2 karakter")
+    .max(20, "Nama maksimal 20 karakter"),
   roomCode: z.string().length(5, "Kode room harus 5 karakter"),
 });
 
@@ -16,7 +25,7 @@ interface Props {
   onJoinRoom: (roomCode: string, playerName: string) => void;
 }
 
-const API_URL = import.meta.env.VITE_WS_URL || "http://localhost:3001";
+const SERVER_URL = import.meta.env.VITE_WS_URL || getDefaultServerUrl();
 
 export function JoinRoomForm({ onJoinRoom }: Props) {
   const form = useForm<z.infer<typeof formSchema>>({
@@ -29,18 +38,35 @@ export function JoinRoomForm({ onJoinRoom }: Props) {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const code = values.roomCode.toUpperCase();
-    
-    // Validate room exists before joining
-    const res = await fetch(`${API_URL}/api/room/${code}`);
-    const data = await res.json();
-    
-    if (!res.ok || !data?.exists) {
-      form.setError("roomCode", { message: "Terminal ID not found or saturated" });
-      return;
-    }
 
-    // Directly join - no second click needed
-    onJoinRoom(code, values.playerName.trim());
+    try {
+      // Validate room exists before joining
+      const res = await fetch(`${SERVER_URL}/api/room/${code}`);
+
+      if (!res.ok) {
+        form.setError("roomCode", {
+          message: "Server error or connection failed",
+        });
+        return;
+      }
+
+      const data = await res.json();
+
+      if (!data?.exists) {
+        form.setError("roomCode", {
+          message: "Terminal ID not found or saturated",
+        });
+        return;
+      }
+
+      // Directly join - no second click needed
+      onJoinRoom(code, values.playerName.trim());
+    } catch (err) {
+      console.error("Join room error:", err);
+      form.setError("roomCode", {
+        message: "Network error: Cannot reach server",
+      });
+    }
   }
 
   return (
@@ -73,7 +99,9 @@ export function JoinRoomForm({ onJoinRoom }: Props) {
                     placeholder="Terminal ID"
                     {...field}
                     maxLength={5}
-                    onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                    onChange={(e) =>
+                      field.onChange(e.target.value.toUpperCase())
+                    }
                     className="bg-white/5 border-white/5 h-12 md:h-14 text-sm font-black font-mono tracking-[0.2em] uppercase rounded-2xl focus:bg-white/10 transition-all text-accent"
                   />
                 </FormControl>
@@ -82,8 +110,8 @@ export function JoinRoomForm({ onJoinRoom }: Props) {
             )}
           />
         </div>
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           className="w-full bg-white/5 border-white/5 hover:bg-white/10 text-white h-12 md:h-14 rounded-2xl text-xs font-black uppercase tracking-[0.2em] flex items-center gap-2 transition-all active:scale-95"
         >
           <LogIn className="h-4 w-4" />

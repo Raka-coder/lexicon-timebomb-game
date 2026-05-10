@@ -41,7 +41,7 @@ interface GameState {
   setIsMyTurn: (isTurn: boolean) => void;
   setError: (message: string | null) => void;
   setIsValidating: (validating: boolean) => void;
-  setWinnerLoser: (winnerId: string, loserId: string) => void;
+  setWinnerLoser: (winnerId: string | null, loserId: string | null) => void;
   reset: () => void;
   resetGameState: () => void;
 }

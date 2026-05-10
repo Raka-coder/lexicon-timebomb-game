@@ -5,8 +5,6 @@ import { sfx } from "@/lib/sfx";
 import { toast } from "sonner";
 
 export function useGameSocket(socket: Socket | null) {
-  if (!socket) return;
-  
   const {
     setRoom,
     setPlayers,
@@ -27,6 +25,22 @@ export function useGameSocket(socket: Socket | null) {
   const prevTimeRef = useRef<number>(15);
 
   useEffect(() => {
+    if (!socket) return;
+    const handleConnect = () => {
+      const { roomCode } = useGameStore.getState();
+      if (roomCode) {
+        console.log(">> Socket reconnected, syncing room:", roomCode);
+        socket.emit("SYNC_ROOM", { roomCode });
+      }
+    };
+
+    socket.on("connect", handleConnect);
+
+    // Initial sync check
+    if (socket.connected) {
+      handleConnect();
+    }
+
     socket.on("ROOM_CREATED", ({ roomCode, playerId, playerName, isHost }) => {
       console.log(">> ROOM_CREATED:", roomCode, playerId, playerName, isHost);
       setRoom(roomCode, playerId, isHost);
@@ -48,12 +62,12 @@ export function useGameSocket(socket: Socket | null) {
       if (players && Array.isArray(players) && players.length > 0) {
         const myId = useGameStore.getState().myPlayerId;
         const prevPlayerCount = useGameStore.getState().players.length;
-        const newPlayer = players.find((p: any) => p.id !== myId);
-        
+        const newPlayer = players.find((p: { id: string }) => p.id !== myId);
+
         if (newPlayer && players.length > prevPlayerCount) {
           toast.info(`${newPlayer.name} bergabung ke ruangan`);
         }
-        
+
         setPlayers(players);
       } else {
         setPlayers([]);
@@ -77,36 +91,61 @@ export function useGameSocket(socket: Socket | null) {
       setError(message);
     });
 
-    socket.on("GAME_STARTED", ({ players, currentWord, requiredLetter, currentPlayerId, scores }) => {
-      const currentMyPlayerId = useGameStore.getState().myPlayerId;
-      console.log(">> GAME_STARTED:", { currentWord, requiredLetter, currentPlayerId, myPlayerId: currentMyPlayerId });
-      sfx.playPing();
-      resetGameState();
-      setGameStatus("playing");
-      setPlayers(players);
-      setCurrentWord(currentWord || "");
-      setRequiredLetter(requiredLetter || "");
-      setCurrentPlayer(currentPlayerId);
-      setScores(scores || {});
-      const amIPlaying = currentPlayerId === currentMyPlayerId;
-      console.log(">> isMyTurn:", amIPlaying, "currentPlayerId:", currentPlayerId, "myPlayerId:", currentMyPlayerId);
-      setIsMyTurn(amIPlaying);
-      setTimeLeft(15);
-      toast.success("Permainan dimulai!");
-    });
+    socket.on(
+      "GAME_STARTED",
+      ({ players, currentWord, requiredLetter, currentPlayerId, scores }) => {
+        const currentMyPlayerId = useGameStore.getState().myPlayerId;
+        console.log(">> GAME_STARTED:", {
+          currentWord,
+          requiredLetter,
+          currentPlayerId,
+          myPlayerId: currentMyPlayerId,
+        });
+        sfx.playPing();
+        resetGameState();
+        setGameStatus("playing");
+        setPlayers(players);
+        setCurrentWord(currentWord || "");
+        setRequiredLetter(requiredLetter || "");
+        setCurrentPlayer(currentPlayerId);
+        setScores(scores || {});
+        const amIPlaying = currentPlayerId === currentMyPlayerId;
+        console.log(
+          ">> isMyTurn:",
+          amIPlaying,
+          "currentPlayerId:",
+          currentPlayerId,
+          "myPlayerId:",
+          currentMyPlayerId,
+        );
+        setIsMyTurn(amIPlaying);
+        setTimeLeft(15);
+        toast.success("Permainan dimulai!");
+      },
+    );
 
-    socket.on("TURN_START", ({ currentPlayerId, currentWord, requiredLetter, scores }) => {
-      const currentMyPlayerId = useGameStore.getState().myPlayerId;
-      console.log(">> TURN_START:", currentPlayerId, currentWord, requiredLetter, "myPlayerId:", currentMyPlayerId);
-      setCurrentWord(currentWord || "");
-      setRequiredLetter(requiredLetter || "");
-      setCurrentPlayer(currentPlayerId);
-      setScores(scores || {});
-      const amIPlaying = currentPlayerId === currentMyPlayerId;
-      console.log(">> TURN isMyTurn:", amIPlaying);
-      setIsMyTurn(amIPlaying);
-      setTimeLeft(15);
-    });
+    socket.on(
+      "TURN_START",
+      ({ currentPlayerId, currentWord, requiredLetter, scores }) => {
+        const currentMyPlayerId = useGameStore.getState().myPlayerId;
+        console.log(
+          ">> TURN_START:",
+          currentPlayerId,
+          currentWord,
+          requiredLetter,
+          "myPlayerId:",
+          currentMyPlayerId,
+        );
+        setCurrentWord(currentWord || "");
+        setRequiredLetter(requiredLetter || "");
+        setCurrentPlayer(currentPlayerId);
+        setScores(scores || {});
+        const amIPlaying = currentPlayerId === currentMyPlayerId;
+        console.log(">> TURN isMyTurn:", amIPlaying);
+        setIsMyTurn(amIPlaying);
+        setTimeLeft(15);
+      },
+    );
 
     socket.on("WORD_VALID", ({ word, nextLetter, scores, currentPlayerId }) => {
       console.log(">> WORD_VALID:", word, nextLetter);
@@ -141,7 +180,12 @@ export function useGameSocket(socket: Socket | null) {
 
     socket.on("TIMER_SYNC", ({ timeLeft }) => {
       const currentIsMyTurn = useGameStore.getState().isMyTurn;
-      if (timeLeft <= 4 && timeLeft > 0 && prevTimeRef.current > 4 && currentIsMyTurn) {
+      if (
+        timeLeft <= 4 &&
+        timeLeft > 0 &&
+        prevTimeRef.current > 4 &&
+        currentIsMyTurn
+      ) {
         sfx.playTick();
       }
       prevTimeRef.current = timeLeft;
@@ -154,7 +198,7 @@ export function useGameSocket(socket: Socket | null) {
       setWinnerLoser(winnerId, loserId);
       setGameStatus("finished");
       setScores(scores || {});
-      
+
       const currentMyPlayerId = useGameStore.getState().myPlayerId;
       if (winnerId === currentMyPlayerId) {
         sfx.playSuccess();
@@ -192,5 +236,21 @@ export function useGameSocket(socket: Socket | null) {
       socket.off("GAME_OVER");
       socket.off("ROOM_RESET");
     };
-  }, [socket, myPlayerId, setIsMyTurn, setGameStatus, setPlayers, setError, setTimeLeft, addWordToHistory, setCurrentWord, setRequiredLetter, setCurrentPlayer, setScores, resetGameState, setRoom, setWinnerLoser]);
+  }, [
+    socket,
+    myPlayerId,
+    setIsMyTurn,
+    setGameStatus,
+    setPlayers,
+    setError,
+    setTimeLeft,
+    addWordToHistory,
+    setCurrentWord,
+    setRequiredLetter,
+    setCurrentPlayer,
+    setScores,
+    resetGameState,
+    setRoom,
+    setWinnerLoser,
+  ]);
 }

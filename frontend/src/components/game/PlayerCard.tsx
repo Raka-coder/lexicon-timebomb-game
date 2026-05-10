@@ -1,5 +1,5 @@
 import { useGameStore } from "@/stores/gameStore";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Shield, User, Activity, Zap, Cpu } from "lucide-react";
 
 interface PlayerCardProps {
@@ -15,14 +15,37 @@ export function PlayerCard({ playerId, name, isHost }: PlayerCardProps) {
   const isMe = myPlayerId === playerId;
 
   const [scoreChanged, setScoreChanged] = useState(false);
+  const prevScoreRef = useRef(0);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mountedRef = useRef(true);
 
   useEffect(() => {
-    if (score > 0) {
-      setScoreChanged(true);
-      const timer = setTimeout(() => setScoreChanged(false), 800);
-      return () => clearTimeout(timer);
+    if (!mountedRef.current) return;
+
+    if (score > prevScoreRef.current) {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      queueMicrotask(() => {
+        if (mountedRef.current) setScoreChanged(true);
+      });
+      timerRef.current = setTimeout(() => {
+        prevScoreRef.current = score;
+        queueMicrotask(() => {
+          if (mountedRef.current) setScoreChanged(false);
+        });
+      }, 800);
+    } else {
+      prevScoreRef.current = score;
     }
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, [score]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   return (
     <div

@@ -5,8 +5,8 @@ import { useGameStore } from "@/stores/gameStore";
 import { CreateRoomForm } from "@/components/room/CreateRoomForm";
 import { JoinRoomForm } from "@/components/room/JoinRoomForm";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, UserPlus, LogIn, Users } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowLeft, UserPlus, Users } from "lucide-react";
+// import { toast } from "sonner";
 
 export function PlayPage() {
   const { socket, isConnected } = useSocket();
@@ -78,18 +78,18 @@ export function PlayPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 md:p-8 relative overflow-y-auto no-scrollbar">
       {/* Decorative Elements */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full animate-float" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/10 blur-[120px] rounded-full animate-float" style={{ animationDelay: '-3s' }} />
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full animate-float pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/10 blur-[120px] rounded-full animate-float pointer-events-none" style={{ animationDelay: '-3s' }} />
       
       {/* Grid Pattern Overlay */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
            style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
 
-      <div className="max-w-md w-full relative z-10">
+      <div className="max-w-md w-full relative z-10 py-8">
         {/* Header with Back Button */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6 md:mb-8">
           <Button
             variant="ghost"
             onClick={handleBack}
@@ -105,7 +105,7 @@ export function PlayPage() {
           <div className="flex bg-background/40 backdrop-blur-2xl rounded-[2.4rem] p-1">
             <button
               onClick={() => setPlayerMode("host")}
-              className={`flex-1 h-14 rounded-[2rem] flex items-center justify-center gap-2 transition-all ${
+              className={`flex-1 h-14 rounded-4xl flex items-center justify-center gap-2 transition-all ${
                 playerMode === "host"
                   ? "btn-stitch text-white"
                   : "text-white/40 hover:text-white/80"
@@ -116,7 +116,7 @@ export function PlayPage() {
             </button>
             <button
               onClick={() => setPlayerMode("player")}
-              className={`flex-1 h-14 rounded-[2rem] flex items-center justify-center gap-2 transition-all ${
+              className={`flex-1 h-14 rounded-4xl flex items-center justify-center gap-2 transition-all ${
                 playerMode === "player"
                   ? "btn-stitch text-white"
                   : "text-white/40 hover:text-white/80"

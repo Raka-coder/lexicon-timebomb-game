@@ -5,6 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  VisuallyHidden,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -46,6 +47,11 @@ export function GameOverModal({
       >
         <div className="relative p-6 md:p-8">
           <div className="space-y-6">
+            <VisuallyHidden asChild={true}>
+              <DialogTitle className="text-center">
+                {isWinner ? "Victory Achieved" : "Defeat - Game Over"}
+              </DialogTitle>
+            </VisuallyHidden>
             <DialogHeader className="text-center space-y-4">
               <div
                 className={`p-4 w-20 h-20 mx-auto flex items-center justify-center rounded-full border-2 ${

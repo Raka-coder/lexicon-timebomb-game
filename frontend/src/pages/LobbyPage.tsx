@@ -49,12 +49,12 @@ export function LobbyPage() {
             <p className="font-mono text-[10px] text-doom-cyan uppercase tracking-widest animate-pulse">MEMUAT DATA RUANGAN: {roomCode || "..."}</p>
           </div>
         ) : (
-          <div className="w-full animate-in fade-in zoom-in duration-300 space-y-6">
+          <div className="w-full flex flex-col items-center animate-in fade-in zoom-in duration-300 space-y-6">
             <WaitingLobby socket={socket} />
             <Button
               variant="ghost"
               onClick={handleLeaveToLanding}
-              className="w-full h-12 glass border-white/10 text-white/60 hover:text-white hover:border-primary/40 rounded-2xl transition-all"
+              className="max-w-md w-full h-12 glass border-white/10 text-white/60 hover:text-white hover:border-primary/40 rounded-2xl transition-all"
             >
               Kembali ke Landing Page
             </Button>

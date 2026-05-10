@@ -1,7 +1,12 @@
 import type { Socket } from "socket.io";
 import type { Server } from "socket.io";
 import { getRoomBySocketId } from "../game/roomManager";
-import { initGameState, validateWord as validateWordLogic, getNextPlayer, getHostFirstPlayerId } from "../game/gameLogic";
+import {
+  initGameState,
+  validateWord as validateWordLogic,
+  getNextPlayer,
+  getHostFirstPlayerId,
+} from "../game/gameLogic";
 import { getRandomStartWord } from "../dictionary/words";
 import { TimerManager } from "../game/timerManager";
 import { CONFIG } from "../lib/constants";
@@ -16,50 +21,81 @@ import type {
   RoomErrorPayload,
 } from "../types";
 
-export function setupGameHandlers(io: Server, socket: Socket, timerManager: TimerManager): void {
+export function setupGameHandlers(
+  io: Server,
+  socket: Socket,
+  timerManager: TimerManager,
+): void {
   socket.on("START_GAME", () => {
-    console.log(`START_GAME request from ${socket.id}`);
-    
-    const room = getRoomBySocketId(socket.id);
+    const socketId = socket.id;
+    console.log(`START_GAME request from ${socketId}`);
+
+    const room = getRoomBySocketId(socketId);
     if (!room || room.status !== "waiting") {
-      console.log("START_GAME failed: room not found or not waiting");
+      console.log(
+        `START_GAME failed: room not found or not waiting for socket ${socketId}`,
+      );
       return;
     }
 
-    const player = room.players.get(socket.id);
+    const player = room.players.get(socketId);
     if (!player?.isHost) {
-      console.log("START_GAME failed: not host");
+      console.log(
+        `START_GAME failed: socket ${socketId} is not host in room ${room.code}`,
+      );
       return;
     }
 
-    if (room.players.size < 2) {
-      const errorPayload: RoomErrorPayload = { message: "Minimal 2 pemain untuk mulai" };
+    const playerCount = room.players.size;
+    if (playerCount < 2) {
+      const errorPayload: RoomErrorPayload = {
+        message: "Minimal 2 pemain untuk mulai",
+      };
       socket.emit("ROOM_ERROR", errorPayload);
-      console.log("START_GAME failed: not enough players");
+
+      // Force sync player list to correct client-side state
+      const players: PlayerInfo[] = Array.from(room.players.values()).map(
+        (p) => ({
+          id: p.id,
+          name: p.name,
+          isHost: p.isHost,
+        }),
+      );
+      socket.emit("PLAYER_JOINED", { players });
+
+      console.log(
+        `START_GAME failed: not enough players in room ${room.code} (count: ${playerCount}). Synced back to client.`,
+      );
       return;
     }
+
+    console.log(
+      `Room ${room.code} has ${playerCount} players. Proceeding to start...`,
+    );
 
     const playersArray = Array.from(room.players.values());
     const playerIds = playersArray.map((p) => p.id);
     const hostPlayerId = room.players.get(room.hostSocketId)?.id ?? null;
     const firstPlayerId = getHostFirstPlayerId(playerIds, hostPlayerId);
-    
+
     if (!firstPlayerId) {
       console.log("START_GAME failed: no first player found");
       return;
     }
-    
+
     const startWord = getRandomStartWord() || CONFIG.START_WORD;
     const gameState = initGameState(playerIds, startWord, firstPlayerId);
-    
+
     room.gameState = gameState;
     room.status = "playing";
 
-    const players: PlayerInfo[] = Array.from(room.players.values()).map((p) => ({
-      id: p.id,
-      name: p.name,
-      isHost: p.isHost,
-    }));
+    const players: PlayerInfo[] = Array.from(room.players.values()).map(
+      (p) => ({
+        id: p.id,
+        name: p.name,
+        isHost: p.isHost,
+      }),
+    );
 
     const gameStartedPayload: GameStartedPayload = {
       players,
@@ -78,7 +114,9 @@ export function setupGameHandlers(io: Server, socket: Socket, timerManager: Time
     };
     io.to(room.code).emit("TURN_START", turnStartPayload);
 
-    console.log(`Game started in room ${room.code}, first player (host): ${firstPlayerId}`);
+    console.log(
+      `Game started in room ${room.code}, first player (host): ${firstPlayerId}`,
+    );
 
     timerManager.startTurn(room.code, firstPlayerId, () => {
       room.status = "finished";
@@ -123,7 +161,7 @@ export function setupGameHandlers(io: Server, socket: Socket, timerManager: Time
     const localValidation = validateWordLogic(
       word,
       gameState.requiredLetter,
-      gameState.wordHistory
+      gameState.wordHistory,
     );
 
     if (!localValidation.valid) {
@@ -197,7 +235,9 @@ export function setupGameHandlers(io: Server, socket: Socket, timerManager: Time
       io.to(room.code).emit("GAME_OVER", gameOverPayload);
     });
 
-    console.log(`WORD_VALID: ${normalizedWord} by ${player.name}, next: ${nextPlayerId}`);
+    console.log(
+      `WORD_VALID: ${normalizedWord} by ${player.name}, next: ${nextPlayerId}`,
+    );
   });
 
   socket.on("RESTART_GAME", () => {
