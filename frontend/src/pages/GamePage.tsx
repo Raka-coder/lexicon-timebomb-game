@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGameStore } from "@/stores/gameStore";
 import { useSocket } from "@/hooks/useSocket";
@@ -6,9 +6,10 @@ import { BombTimer } from "@/components/game/BombTimer";
 import { WordInput } from "@/components/game/WordInput";
 import { WordHistory } from "@/components/game/WordHistory";
 import { PlayerCard } from "@/components/game/PlayerCard";
+import { GameOverModal } from "@/components/game/GameOverModal";
 import { useGameSocket } from "@/hooks/useGameSocket";
 import { sfx } from "@/lib/sfx";
-import { Volume2, VolumeX, ShieldAlert, Cpu, Terminal, LayoutPanelTop, Trophy } from "lucide-react";
+import { Volume2, VolumeX, ShieldAlert, Cpu, Terminal, LayoutPanelTop } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function GamePage() {
@@ -18,15 +19,16 @@ export function GamePage() {
     gameStatus,
     players,
     roomCode,
+    myPlayerId,
     currentWord,
     requiredLetter,
     scores,
     errorMessage,
+    winnerId,
+    loserId,
     reset
   } = useGameStore();
   const [muted, setMuted] = useState(sfx.isMuted());
-  const gameOverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isRestartingRef = useRef(false);
 
   useGameSocket(socket);
 
@@ -38,34 +40,23 @@ export function GamePage() {
   useEffect(() => {
     if (!roomCode || gameStatus === "idle") {
       navigate("/");
+    } else if (gameStatus === "waiting") {
+      navigate("/lobby");
     }
   }, [roomCode, gameStatus, navigate]);
-
-  useEffect(() => {
-    if (gameStatus === "finished" && !isRestartingRef.current) {
-      gameOverTimerRef.current = setTimeout(() => {
-        reset();
-        navigate("/");
-      }, 60000);
-
-      return () => {
-        if (gameOverTimerRef.current) {
-          clearTimeout(gameOverTimerRef.current);
-        }
-      };
-    }
-  }, [gameStatus, navigate, reset]);
 
   const handleSubmitWord = (word: string) => {
     socket?.emit("SUBMIT_WORD", { word });
   };
 
   const handleRestartGame = () => {
-    isRestartingRef.current = true;
-    if (gameOverTimerRef.current) {
-      clearTimeout(gameOverTimerRef.current);
-    }
     socket?.emit("RESTART_GAME");
+  };
+
+  const handleExitGame = () => {
+    socket?.emit("EXIT_GAME");
+    reset();
+    navigate("/");
   };
 
   if (gameStatus !== "playing" && gameStatus !== "finished") {
@@ -86,8 +77,7 @@ export function GamePage() {
     );
   }
 
-  const isWinner = errorMessage?.includes("menang") || false;
-  const gameOverMessage = errorMessage || (isWinner ? "LINK SECURED: VICTORY ACHIEVED" : "SYSTEM TERMINATED");
+  const isWinner = myPlayerId && winnerId ? myPlayerId === winnerId : errorMessage?.includes("menang") || false;
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-10 relative overflow-hidden flex flex-col items-center">
@@ -217,54 +207,18 @@ export function GamePage() {
           </div>
         </div>
 
-        {/* System Termination Protocol (Game Over) */}
-        {gameStatus === "finished" && (
-          <div className="fixed inset-0 bg-background/95 backdrop-blur-2xl flex items-center justify-center p-4 z-50 animate-in fade-in duration-700">
-            <div className="max-w-xl w-full relative">
-              <div className="absolute -inset-2 bg-gradient-to-r from-primary via-accent to-primary rounded-[3rem] blur-2xl opacity-20 animate-pulse" />
-              
-              <div className="relative glass border-white/10 p-12 md:p-16 rounded-[3rem] text-center space-y-12 shadow-inner">
-                <div className="space-y-4">
-                  <div className="p-4 glass rounded-3xl w-20 h-20 mx-auto flex items-center justify-center border-white/10 mb-6">
-                     <Trophy className={`h-10 w-10 ${isWinner ? 'text-accent fill-accent animate-bounce' : 'text-destructive/40'}`} />
-                  </div>
-                  <h2 className="text-5xl font-black text-white tracking-tighter uppercase leading-[0.9]">
-                    PROTOCOL<br /><span className="text-primary glow-text-purple">TERMINATED</span>
-                  </h2>
-                  <p className={`text-xs font-black uppercase tracking-[0.4em] py-3 glass rounded-full border-white/5 ${isWinner ? 'text-accent glow-text-cyan' : 'text-destructive'}`}>
-                    {gameOverMessage}
-                  </p>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-8 py-8 border-y border-white/5">
-                  {players.map((player) => (
-                    <div key={player.id} className="text-center space-y-2 group">
-                      <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] group-hover:text-white/60 transition-colors">{player.name}</p>
-                      <p className="text-5xl font-black font-mono text-white glow-text-purple">{scores[player.id]?.toString().padStart(3, '0') || '000'}</p>
-                      <p className="text-[9px] font-black text-primary/40 uppercase tracking-[0.2em]">Neural_Points</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex flex-col gap-4">
-                  <Button
-                    onClick={handleRestartGame}
-                    className="w-full btn-stitch text-white font-black py-8 rounded-[2rem] text-xl uppercase tracking-widest transition-all shadow-2xl"
-                  >
-                    Initiate Re-Link
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    onClick={() => navigate("/")}
-                    className="w-full text-white/30 hover:text-white font-black uppercase text-[10px] tracking-[0.6em] transition-all"
-                  >
-                    Disconnect Node
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Game Over Modal */}
+        <GameOverModal
+          isOpen={gameStatus === "finished"}
+          isWinner={isWinner}
+          winnerId={winnerId}
+          loserId={loserId}
+          myPlayerId={myPlayerId}
+          players={players}
+          scores={scores}
+          onPlayAgain={handleRestartGame}
+          onLeave={handleExitGame}
+        />
       </div>
 
       <footer className="mt-20 text-[9px] font-black text-white/10 uppercase tracking-[0.8em] relative z-10 text-center">

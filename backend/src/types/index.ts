@@ -42,6 +42,7 @@ export interface WordValidPayload {
   word: string;
   playerId: string;
   playerName: string;
+  currentPlayerId: string;
   scores: Record<string, number>;
   nextLetter: string;
 }
@@ -58,6 +59,7 @@ export interface GameOverPayload {
   reason: "timeout" | "disconnect";
   scores: Record<string, number>;
   wordHistory: string[];
+  roomStatus?: RoomStatus;
 }
 
 export interface RoomResetPayload {
@@ -80,12 +82,14 @@ export interface RoomErrorPayload {
 export interface RoomCreatedPayload {
   roomCode: string;
   playerId: string;
+  playerName: string;
   isHost: boolean;
 }
 
 export interface RoomJoinedPayload {
   roomCode: string;
   playerId: string;
+  playerName: string;
   isHost: boolean;
 }
 

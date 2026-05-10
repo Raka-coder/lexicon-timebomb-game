@@ -1,8 +1,7 @@
-Perbaiki agar sistem memberitahu pemain untuk memulai permainan tebak kata disaat permainan baru dimulai mengikuti giliran pemain
+Pada project ini saya minta kamu sebagai developer untuk mengatasi bug pada fitur game:
 
-saya jalankan uji coba di local sebagai pembuat room, pada layar saya harus mulai bermain, tetapi tidak bisa input kata karena bukan giliran saya, saya coba di tab sebagai player pun saya tidak bisa input kata karena belum gilirannya, jadi tidak bisa input kata apapun, bug itu masih terjadi, perbaiki agar bisa berjalan kembali
+Perbaiki pada saat salah satu pemain menang agar muncul modal/pop-up ketika permainan selesai dengan komponen shadcn dan buat juga opsi untuk memulai kembali dan keluar dari permainan (jangan langsung rest dan stuck begitu saja, gunakan penerapan ui/ux yang baik dan memudahkan pengguna)
 
-Tambahkan fitur modal/pop-up ketika waktu permainan sudah habis dengan opsi untuk memulai kembali dan keluar dari permainan, selama ini masih bug dan error ketika permainan selesai tidak bisa apa-apa/input
-
-pastikan fitur redirect route berfungsi dengan baik ketika permainan diakhiri
+Terdapat bug:
+Ketika permainan berakhir hanya stuck di bagian /lobby, si modal/pop-up tidak muncul dan pengguna keluar dari permainan secara otomatis, modal/pop-up (lewat sekejap mata), perbaiki fiturnya agar memudahkan pengguna
 

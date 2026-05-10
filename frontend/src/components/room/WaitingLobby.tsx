@@ -11,6 +11,7 @@ interface Props {
 
 export function WaitingLobby({ socket }: Props) {
   const { roomCode, players, isHost, gameStatus } = useGameStore();
+  const playerList = Array.isArray(players) ? players : [];
 
   const handleStartGame = () => {
     socket?.emit("START_GAME");
@@ -36,7 +37,7 @@ export function WaitingLobby({ socket }: Props) {
             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-doom-purple/80">LOBBY_ACTIVE</span>
           </div>
           <Badge className="bg-doom-purple/10 border border-doom-purple/30 text-doom-purple text-[10px] font-black tracking-widest px-2 py-0.5 rounded-full uppercase">
-            {players.length} Pemain
+            {playerList.length} Pemain
           </Badge>
         </div>
         <CardTitle className="flex items-center justify-between">
@@ -58,46 +59,57 @@ export function WaitingLobby({ socket }: Props) {
           </div>
           
           <div className="space-y-3">
-            {players.map((player) => (
-              <div
-                key={player.id}
-                className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 transition-all hover:bg-white/[0.08]"
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`h-8 w-8 rounded-lg flex items-center justify-center font-black text-xs ${player.isHost ? 'bg-doom-purple/20 text-doom-purple border border-doom-purple/30' : 'bg-white/10 text-white/50 border border-white/5'}`}>
-                    {player.name.charAt(0).toUpperCase()}
+            {playerList.map((player, index) => {
+              if (!player) return null;
+              const displayName = String(player.name || "Unknown");
+              const playerKey = String(player.id || `player-${index}`);
+              return (
+                <div
+                  key={playerKey}
+                  className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 transition-all hover:bg-white/[0.08]"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`h-8 w-8 rounded-lg flex items-center justify-center font-black text-xs ${player.isHost ? 'bg-doom-purple/20 text-doom-purple border border-doom-purple/30' : 'bg-white/10 text-white/50 border border-white/5'}`}>
+                      {displayName.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-white uppercase text-sm">{displayName}</span>
+                      {player.isHost && (
+                        <span className="text-[8px] text-doom-cyan/60 uppercase tracking-wider">Awal giliran</span>
+                      )}
+                    </div>
                   </div>
-                  <span className="font-bold text-white uppercase text-sm">{player.name}</span>
+                  {player.isHost && (
+                    <Badge className="bg-doom-purple/20 border border-doom-purple/40 text-doom-purple text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest">
+                      HOST
+                    </Badge>
+                  )}
                 </div>
-                {player.isHost && (
-                  <Badge className="bg-doom-purple/20 border border-doom-purple/40 text-doom-purple text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest">
-                    HOST
-                  </Badge>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
         <div className="pt-4 space-y-4 border-t border-white/5">
-          {isHost ? (
+          {isHost && playerList.length >= 2 ? (
             <div className="space-y-4">
               <Button
                 onClick={handleStartGame}
-                disabled={players.length < 2}
-                className="w-full bg-doom-purple hover:bg-doom-purple/80 text-white font-black py-6 rounded-2xl transition-all active:scale-95 disabled:opacity-50 disabled:grayscale group"
+                className="w-full bg-doom-purple hover:bg-doom-purple/80 text-white font-black py-6 rounded-2xl transition-all active:scale-95 group"
               >
-                {players.length < 2 ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    <span className="tracking-tighter uppercase">MENUNGGU PEMAIN LAIN...</span>
-                  </>
-                ) : (
-                  <>
-                    <Play className="mr-2 h-4 w-4 fill-current group-hover:translate-x-1 transition-transform" />
-                    <span className="tracking-tighter uppercase text-lg">INISIASI PROTOKOL</span>
-                  </>
-                )}
+                  <Play className="mr-2 h-4 w-4 fill-current group-hover:translate-x-1 transition-transform" />
+                  <span className="tracking-tighter uppercase text-lg">INISIASI PROTOKOL</span>
+              </Button>
+              <p className="text-[10px] text-center text-muted-foreground font-mono uppercase tracking-widest">Minimal 2 pemain untuk memulai</p>
+            </div>
+          ) : isHost && playerList.length < 2 ? (
+            <div className="space-y-4">
+              <Button
+                disabled
+                className="w-full bg-doom-purple/50 text-white/50 font-black py-6 rounded-2xl transition-all cursor-not-allowed"
+              >
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <span className="tracking-tighter uppercase">MENUNGGU PEMAIN LAIN...</span>
               </Button>
               <p className="text-[10px] text-center text-muted-foreground font-mono uppercase tracking-widest">Minimal 2 pemain untuk memulai</p>
             </div>

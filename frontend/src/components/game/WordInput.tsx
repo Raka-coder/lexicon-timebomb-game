@@ -18,7 +18,7 @@ interface Props {
 }
 
 export function WordInput({ onSubmit }: Props) {
-  const { isMyTurn, isValidating, requiredLetter, errorMessage, setError, players, currentPlayer } =
+  const { isMyTurn, isValidating, requiredLetter, errorMessage, setError, players, currentPlayerId } =
     useGameStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const [justStartedTurn, setJustStartedTurn] = useState(false);
@@ -81,7 +81,7 @@ export function WordInput({ onSubmit }: Props) {
     }, 50);
   };
 
-  const currentPlayerName = players.find(p => p.id === currentPlayer)?.name || "Player";
+  const currentPlayerName = players.find(p => p.id === currentPlayerId)?.name || "Player";
 
   return (
     <Form {...form}>

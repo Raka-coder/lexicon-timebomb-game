@@ -1,7 +1,7 @@
 import type { Socket } from "socket.io";
 import type { Server } from "socket.io";
 import { getRoomBySocketId } from "../game/roomManager";
-import { initGameState, validateWord as validateWordLogic, getNextPlayer } from "../game/gameLogic";
+import { initGameState, validateWord as validateWordLogic, getNextPlayer, getHostFirstPlayerId } from "../game/gameLogic";
 import { getRandomStartWord } from "../dictionary/words";
 import { TimerManager } from "../game/timerManager";
 import { CONFIG } from "../lib/constants";
@@ -40,8 +40,16 @@ export function setupGameHandlers(io: Server, socket: Socket, timerManager: Time
     }
 
     const playerIds = Array.from(room.players.values()).map((p) => p.id);
+    const hostSocketId = room.hostSocketId;
+    const firstPlayerId = getHostFirstPlayerId(playerIds, hostSocketId);
+    
+    if (!firstPlayerId) {
+      console.log("START_GAME failed: no first player found");
+      return;
+    }
+    
     const startWord = getRandomStartWord() || CONFIG.START_WORD;
-    const gameState = initGameState(playerIds, startWord);
+    const gameState = initGameState(playerIds, startWord, firstPlayerId);
     
     room.gameState = gameState;
     room.status = "playing";
@@ -52,27 +60,26 @@ export function setupGameHandlers(io: Server, socket: Socket, timerManager: Time
       isHost: p.isHost,
     }));
 
-    const firstPlayer = Array.from(room.players.values())[0];
-    if (!firstPlayer) return;
-
     const gameStartedPayload: GameStartedPayload = {
       players,
       currentWord: gameState.currentWord ?? "",
       requiredLetter: gameState.requiredLetter ?? "",
-      currentPlayerId: gameState.currentPlayerId ?? "",
+      currentPlayerId: firstPlayerId,
       scores: gameState.scores,
     };
     io.to(room.code).emit("GAME_STARTED", gameStartedPayload);
 
     const turnStartPayload: TurnStartPayload = {
-      currentPlayerId: firstPlayer.id,
+      currentPlayerId: firstPlayerId,
       currentWord: gameState.currentWord ?? "",
       requiredLetter: gameState.requiredLetter ?? "",
       scores: gameState.scores,
     };
     io.to(room.code).emit("TURN_START", turnStartPayload);
 
-    timerManager.startTurn(room.code, firstPlayer.id, () => {
+    console.log(`Game started in room ${room.code}, first player (host): ${firstPlayerId}`);
+
+    timerManager.startTurn(room.code, firstPlayerId, () => {
       const loserId = gameState.currentPlayerId ?? "";
       const winnerId = playerIds.find((id) => id !== loserId) ?? "";
 
@@ -82,18 +89,10 @@ export function setupGameHandlers(io: Server, socket: Socket, timerManager: Time
         reason: "timeout",
         scores: gameState.scores,
         wordHistory: gameState.wordHistory,
+        roomStatus: "playing",
       };
       io.to(room.code).emit("GAME_OVER", gameOverPayload);
-
-      room.status = "waiting";
-      room.gameState = undefined;
-      timerManager.stopTurn(room.code);
-      
-      const resetPayload: RoomResetPayload = { status: "waiting" };
-      io.to(room.code).emit("ROOM_RESET", resetPayload);
     });
-
-    console.log(`Game started in room ${room.code} with word: ${startWord}`);
   });
 
   socket.on("SUBMIT_WORD", ({ word }: { word: string }) => {
@@ -164,6 +163,7 @@ export function setupGameHandlers(io: Server, socket: Socket, timerManager: Time
       word: normalizedWord,
       playerId: player.id,
       playerName: player.name,
+      currentPlayerId: nextPlayerId,
       scores: gameState.scores,
       nextLetter,
     };
@@ -187,17 +187,39 @@ export function setupGameHandlers(io: Server, socket: Socket, timerManager: Time
         reason: "timeout",
         scores: gameState.scores,
         wordHistory: gameState.wordHistory,
+        roomStatus: "playing",
       };
       io.to(room.code).emit("GAME_OVER", gameOverPayload);
-
-      room.status = "waiting";
-      room.gameState = undefined;
-      timerManager.stopTurn(room.code);
-      
-      const resetPayload: RoomResetPayload = { status: "waiting" };
-      io.to(room.code).emit("ROOM_RESET", resetPayload);
     });
 
     console.log(`WORD_VALID: ${normalizedWord} by ${player.name}, next: ${nextPlayerId}`);
+  });
+
+  socket.on("RESTART_GAME", () => {
+    console.log(`RESTART_GAME request from ${socket.id}`);
+    const room = getRoomBySocketId(socket.id);
+    if (!room) return;
+
+    // Reset room to waiting state and notify all players
+    room.status = "waiting";
+    room.gameState = undefined;
+    timerManager.stopTurn(room.code);
+
+    const resetPayload: RoomResetPayload = { status: "waiting" };
+    io.to(room.code).emit("ROOM_RESET", resetPayload);
+    console.log(`Room ${room.code} reset by ${socket.id}`);
+  });
+
+  socket.on("EXIT_GAME", () => {
+    console.log(`EXIT_GAME request from ${socket.id}`);
+    const room = getRoomBySocketId(socket.id);
+    if (!room) return;
+
+    room.status = "waiting";
+    room.gameState = undefined;
+    timerManager.stopTurn(room.code);
+
+    const resetPayload: RoomResetPayload = { status: "waiting" };
+    io.to(room.code).emit("ROOM_RESET", resetPayload);
   });
 }

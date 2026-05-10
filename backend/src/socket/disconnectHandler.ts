@@ -27,9 +27,6 @@ export function setupDisconnectHandler(io: Server, socket: Socket, timerManager:
         
         room.status = "waiting";
         room.gameState = undefined;
-        
-        const resetPayload: RoomResetPayload = { status: "waiting" };
-        io.to(room.code).emit("ROOM_RESET", resetPayload);
       }
     } else {
       const players: PlayerInfo[] = Array.from(room.players.values()).map((p) => ({

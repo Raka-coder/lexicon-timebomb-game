@@ -25,6 +25,9 @@ interface GameState {
   errorMessage: string | null;
   isValidating: boolean;
 
+  winnerId: string | null;
+  loserId: string | null;
+
   setRoom: (code: string, playerId: string, isHost: boolean) => void;
   setPlayers: (players: Player[]) => void;
   setGameStatus: (status: "idle" | "waiting" | "playing" | "finished") => void;
@@ -38,6 +41,7 @@ interface GameState {
   setIsMyTurn: (isTurn: boolean) => void;
   setError: (message: string | null) => void;
   setIsValidating: (validating: boolean) => void;
+  setWinnerLoser: (winnerId: string, loserId: string) => void;
   reset: () => void;
   resetGameState: () => void;
 }
@@ -57,6 +61,8 @@ const initialState = {
   isMyTurn: false,
   errorMessage: null,
   isValidating: false,
+  winnerId: null,
+  loserId: null,
 };
 
 export const useGameStore = create<GameState>((set) => ({
@@ -101,6 +107,8 @@ export const useGameStore = create<GameState>((set) => ({
 
   setIsValidating: (validating) => set({ isValidating: validating }),
 
+  setWinnerLoser: (winnerId, loserId) => set({ winnerId, loserId }),
+
   reset: () => set(initialState),
 
   resetGameState: () => set({
@@ -113,6 +121,8 @@ export const useGameStore = create<GameState>((set) => ({
     isMyTurn: false,
     errorMessage: null,
     isValidating: false,
-    gameStatus: "playing",
+    gameStatus: "waiting",
+    winnerId: null,
+    loserId: null,
   }),
 }));

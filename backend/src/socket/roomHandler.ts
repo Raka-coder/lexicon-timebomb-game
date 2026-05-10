@@ -17,6 +17,7 @@ export function setupRoomHandlers(io: Server, socket: Socket): void {
     const payload: RoomCreatedPayload = {
       roomCode: room.code,
       playerId: player?.id ?? "",
+      playerName: playerName,
       isHost: true,
     };
     socket.emit("ROOM_CREATED", payload);
@@ -41,6 +42,7 @@ export function setupRoomHandlers(io: Server, socket: Socket): void {
     const payload: RoomJoinedPayload = {
       roomCode: room.code,
       playerId: player?.id ?? "",
+      playerName: playerName,
       isHost: false,
     };
     socket.emit("ROOM_JOINED", payload);

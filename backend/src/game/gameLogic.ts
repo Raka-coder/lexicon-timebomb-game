@@ -6,9 +6,18 @@ export interface GameState {
   scores: Record<string, number>;
 }
 
-export function initGameState(playerIds: string[], startWord: string = "rumah"): GameState {
-  const firstPlayerId =
-    playerIds[Math.floor(Math.random() * playerIds.length)] || null;
+export function initGameState(
+  playerIds: string[],
+  startWord: string = "rumah",
+  firstPlayerIdOverride?: string | null
+): GameState {
+  let firstPlayerId: string | null;
+  
+  if (firstPlayerIdOverride && playerIds.includes(firstPlayerIdOverride)) {
+    firstPlayerId = firstPlayerIdOverride;
+  } else {
+    firstPlayerId = playerIds[Math.floor(Math.random() * playerIds.length)] || null;
+  }
 
   return {
     currentWord: startWord,
@@ -20,6 +29,14 @@ export function initGameState(playerIds: string[], startWord: string = "rumah"):
       {} as Record<string, number>
     ),
   };
+}
+
+export function getHostFirstPlayerId(playerIds: string[], hostSocketId?: string): string | null {
+  if (playerIds.length === 0) return null;
+  if (hostSocketId && playerIds.includes(hostSocketId)) {
+    return hostSocketId;
+  }
+  return playerIds[0];
 }
 
 export function validateWord(

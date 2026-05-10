@@ -20,50 +20,47 @@ export function PlayPage() {
     mode === "join" ? "player" : "host"
   );
   const navigatedRef = useRef(false);
-  const hasResetRef = useRef(false);
 
   useEffect(() => {
-    if (!hasResetRef.current && gameStatus === "finished") {
-      reset();
-      hasResetRef.current = true;
-      navigatedRef.current = false;
-      setJoining(false);
+    if (!isConnected) return;
+    
+    if (roomCode && gameStatus === "playing") {
+      navigate("/game");
+      navigatedRef.current = true;
+      return;
+    }
+    
+    if (roomCode && gameStatus === "waiting" && players.length > 0) {
+      navigate("/lobby");
+      navigatedRef.current = true;
+      return;
     }
     
     if (!roomCode && gameStatus === "idle") {
-      hasResetRef.current = false;
+      navigatedRef.current = false;
     }
-  }, [gameStatus, roomCode, reset]);
+  }, [roomCode, gameStatus, players.length, isConnected, navigate]);
 
   useEffect(() => {
-    if (gameStatus === "playing") {
-      navigatedRef.current = true;
-      navigate("/game");
-    }
-  }, [gameStatus, navigate]);
-
-  useEffect(() => {
-    if (navigatedRef.current) return;
-    
-    if (roomCode && gameStatus === "waiting" && players.length > 0) {
-      navigatedRef.current = true;
+    if (gameStatus === "finished") {
+      reset();
+      navigatedRef.current = false;
       setJoining(false);
-      navigate("/lobby");
     }
-  }, [roomCode, gameStatus, players.length, navigate]);
+  }, [gameStatus, reset]);
 
   const handleCreateRoom = (playerName: string) => {
     if (!isConnected || joining) return;
     navigatedRef.current = false;
     setJoining(true);
-    socket.emit("CREATE_ROOM", { playerName });
+    socket.emit("CREATE_ROOM", { playerName: playerName });
   };
 
   const handleJoinRoom = (roomCode: string, playerName: string) => {
     if (!isConnected || joining) return;
     navigatedRef.current = false;
     setJoining(true);
-    socket.emit("JOIN_ROOM", { roomCode, playerName });
+    socket.emit("JOIN_ROOM", { roomCode: roomCode, playerName: playerName });
   };
 
   const handleBack = () => {

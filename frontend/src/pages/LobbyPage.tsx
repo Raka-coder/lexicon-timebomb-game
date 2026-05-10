@@ -8,6 +8,8 @@ export function LobbyPage() {
   const { roomCode, players, gameStatus } = useGameStore();
   const { socket, isConnected } = useSocket();
   const navigate = useNavigate();
+  
+  const playerList = Array.isArray(players) ? players : [];
 
   useEffect(() => {
     if (!roomCode && gameStatus === "idle") {
@@ -34,10 +36,10 @@ export function LobbyPage() {
             <div className="w-12 h-12 border-2 border-doom-red border-t-transparent rounded-full animate-spin" />
             <p className="font-mono text-[10px] text-doom-red uppercase tracking-widest animate-pulse">SISTEM OFFLINE: MENCOBA MENYAMBUNGKAN...</p>
           </div>
-        ) : players.length === 0 ? (
+        ) : playerList.length === 0 ? (
           <div className="flex flex-col items-center gap-4 p-12 bg-doom-card/50 border border-white/5 rounded-3xl backdrop-blur-md">
             <div className="w-12 h-12 border-2 border-doom-cyan border-t-transparent rounded-full animate-spin" />
-            <p className="font-mono text-[10px] text-doom-cyan uppercase tracking-widest animate-pulse">MEMUAT DATA RUANGAN: {roomCode}</p>
+            <p className="font-mono text-[10px] text-doom-cyan uppercase tracking-widest animate-pulse">MEMUAT DATA RUANGAN: {roomCode || "..."}</p>
           </div>
         ) : (
           <div className="w-full animate-in fade-in zoom-in duration-300">
