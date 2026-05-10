@@ -3,6 +3,10 @@ import { LandingPage } from "./pages/LandingPage";
 import { PlayPage } from "./pages/PlayPage";
 import { LobbyPage } from "./pages/LobbyPage";
 import { GamePage } from "./pages/GamePage";
+import { NotFound } from "./pages/error/NotFound";
+import { Forbidden } from "./pages/error/Forbidden";
+import { ServerError } from "./pages/error/ServerError";
+import { Maintenance } from "./pages/error/Maintenance";
 import { useSocket } from "@/hooks/useSocket";
 import { useGameSocket } from "@/hooks/useGameSocket";
 import { Toaster } from "@/components/ui/sonner";
@@ -18,6 +22,10 @@ function AppContent() {
         <Route path="/play" element={<PlayPage />} />
         <Route path="/lobby" element={<LobbyPage />} />
         <Route path="/game" element={<GamePage />} />
+        <Route path="/error/403" element={<Forbidden />} />
+        <Route path="/error/500" element={<ServerError />} />
+        <Route path="/error/503" element={<Maintenance />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster position="top-center" richColors theme="dark" />
     </>

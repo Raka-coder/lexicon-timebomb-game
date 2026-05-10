@@ -25,7 +25,10 @@ interface Props {
   onJoinRoom: (roomCode: string, playerName: string) => void;
 }
 
-const SERVER_URL = import.meta.env.VITE_WS_URL || getDefaultServerUrl();
+const SERVER_URL =
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_WS_URL ||
+  getDefaultServerUrl();
 
 export function JoinRoomForm({ onJoinRoom }: Props) {
   const form = useForm<z.infer<typeof formSchema>>({

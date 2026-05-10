@@ -1,10 +1,10 @@
-Pada project ini saya minta kamu sebagai developer untuk mengatasi bug pada fitur game:
+bantu saya buat pembahasan untuk laporan project ini dan buat dalam 1 file markdown
 
-Terdapat bug:
-Halaman web masih belum responsive pada tampilan mobile, komponen teks, 
-Halaman /lobby pada tampilan desktop kurang center/ke tengah khususnya pada komponen card inisiasi protokol/room
-Halaman /game pada tampilan mobile masih belum responsive dari card, input, pastikan dapat terlihat dengan baik dan jelas dalam 1 halaman browser pada tampilan mobile
+Buat Pembahasan perancangan sistem
 
-analisis codebase ini dan perbaiki bug tersebut
+Arsitektur Aplikasi (Tambahkan Tech stack)
+Diagram Alur Data
+Implementasi Fitur Realtime
 
-
+Tantangan Selama Pengembangan
+Solusi yang diterapkan
