@@ -40,3 +40,6 @@ coverage/
 
 # Skills
 skills
+
+# Stakpak session files
+.stakpak/session*
