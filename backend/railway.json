@@ -5,6 +5,6 @@
   },
   "deploy": {
     "numReplicas": 1,
-    "startCommand": "bun run src/index.ts"
+    "dockerfilePath": "Dockerfile"
   }
 }
