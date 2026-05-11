@@ -84,7 +84,7 @@ export function GameOverModal({
               </DialogTitle>
 
               <DialogDescription
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-[0.2em] glass border ${
+                className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-[0.2em] glass border text-center ${
                   isWinner
                     ? "text-accent border-accent/30"
                     : "text-destructive border-destructive/20"
