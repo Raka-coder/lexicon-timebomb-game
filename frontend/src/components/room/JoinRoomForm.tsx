@@ -19,7 +19,7 @@ const formSchema = z.object({
     .string()
     .min(2, "Nama minimal 2 karakter")
     .max(20, "Nama maksimal 20 karakter"),
-  roomCode: z.string().length(6, "Kode room harus 6 karakter"),
+  roomCode: z.string().length(5, "Kode room harus 5 karakter"),
   password: z.string().max(20, "Password maksimal 20 karakter").optional(),
 });
 
@@ -109,7 +109,7 @@ export function JoinRoomForm({ onJoinRoom }: Props) {
                   <Input
                     placeholder="Terminal ID"
                     {...field}
-                    maxLength={6}
+                    maxLength={5}
                     onChange={(e) =>
                       field.onChange(e.target.value.toUpperCase())
                     }

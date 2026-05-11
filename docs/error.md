@@ -1,4 +1,4 @@
-[[Source
+[[[Source
 Source Repo
 Raka-coder/lexicon-timebomb-game
 
@@ -138,4 +138,8 @@ Cd @ index-B46YB-PX.js:8
 tn @ index-B46YB-PX.js:8
 Od @ index-B46YB-PX.js:8
 fp @ index-B46YB-PX.js:9
-up @ index-B46YB-PX.js:9
+up @ index-B46YB-PX.js:9](index-DhrOTxT8.js:9 [SFX] AudioContext created, state: running
+index-DhrOTxT8.js:9 [SFX] Initialized on user interaction
+index-DhrOTxT8.js:143 ROOM_ERROR: Kode room harus 6 karakter
+play?mode=join:1  Failed to load resource: the server responded with a status of 404 ()
+)

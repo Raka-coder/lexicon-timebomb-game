@@ -12,7 +12,7 @@ export const createRoomSchema = z.object({
 export const joinRoomSchema = z.object({
   roomCode: z
     .string()
-    .length(6, "Kode room harus 6 karakter")
+    .length(5, "Kode room harus 5 karakter")
     .regex(/^[A-Z0-9]+$/, "Kode room tidak valid"),
   playerName: z
     .string()
@@ -33,7 +33,7 @@ export const submitWordSchema = z.object({
 export const syncRoomSchema = z.object({
   roomCode: z
     .string()
-    .length(6, "Kode room harus 6 karakter")
+    .length(5, "Kode room harus 5 karakter")
     .regex(/^[A-Z0-9]+$/, "Kode room tidak valid"),
   playerId: z.string().uuid().optional().nullable(),
 });

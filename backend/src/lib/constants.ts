@@ -13,7 +13,7 @@ export const CONFIG = {
   WORD_MIN_LENGTH: 3,
   WORD_MAX_LENGTH: 50,
 
-  ROOM_CODE_LENGTH: parseInt(process.env.ROOM_CODE_LENGTH || "6"),
+  ROOM_CODE_LENGTH: parseInt(process.env.ROOM_CODE_LENGTH || "5"),
   
   MAX_PLAYERS: parseInt(process.env.MAX_PLAYERS || "2"),
 
