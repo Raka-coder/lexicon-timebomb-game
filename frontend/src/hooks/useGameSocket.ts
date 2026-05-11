@@ -27,10 +27,10 @@ export function useGameSocket(socket: Socket | null) {
   useEffect(() => {
     if (!socket) return;
     const handleConnect = () => {
-      const { roomCode } = useGameStore.getState();
+      const { roomCode, myPlayerId } = useGameStore.getState();
       if (roomCode) {
         console.log(">> Socket reconnected, syncing room:", roomCode);
-        socket.emit("SYNC_ROOM", { roomCode });
+        socket.emit("SYNC_ROOM", { roomCode, playerId: myPlayerId });
       }
     };
 

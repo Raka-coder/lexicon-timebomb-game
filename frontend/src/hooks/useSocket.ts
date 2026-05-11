@@ -8,7 +8,11 @@ export const getDefaultServerUrl = () => {
   return `${protocol}//${host}:3001`;
 };
 
-const SERVER_URL = import.meta.env.VITE_WS_URL || getDefaultServerUrl();
+export const normalizeServerUrl = (url: string) => url.trim().replace(/\/+$/, "");
+
+const SERVER_URL = normalizeServerUrl(
+  import.meta.env.VITE_WS_URL || getDefaultServerUrl(),
+);
 
 let socket: Socket | null = null;
 

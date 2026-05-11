@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { LogIn } from "lucide-react";
-import { getDefaultServerUrl } from "@/hooks/useSocket";
+import { getDefaultServerUrl, normalizeServerUrl } from "@/hooks/useSocket";
 
 const formSchema = z.object({
   playerName: z
@@ -25,10 +25,11 @@ interface Props {
   onJoinRoom: (roomCode: string, playerName: string) => void;
 }
 
-const SERVER_URL =
+const SERVER_URL = normalizeServerUrl(
   import.meta.env.VITE_API_URL ||
-  import.meta.env.VITE_WS_URL ||
-  getDefaultServerUrl();
+    import.meta.env.VITE_WS_URL ||
+    getDefaultServerUrl(),
+);
 
 export function JoinRoomForm({ onJoinRoom }: Props) {
   const form = useForm<z.infer<typeof formSchema>>({

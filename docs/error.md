@@ -1,4 +1,4 @@
-[Source
+[[Source
 Source Repo
 Raka-coder/lexicon-timebomb-game
 
@@ -118,3 +118,24 @@ lexicon-timebomb-game-production.up.railway.app//api/room/XS9AM:1  Failed to loa
 lexicon-timebomb-game-production.up.railway.app//api/room/XS9AM:1  Failed to load resource: the server responded with a status of 404 ()
 lexicon-timebomb-game-production.up.railway.app//api/room/XS9AM:1  Failed to load resource: the server responded with a status of 404 ()
 play?mode=join:1  Failed to load resource: the server responded with a status of 404 ()
+](index-B46YB-PX.js:9 [SFX] AudioContext created, state: running
+index-B46YB-PX.js:9 [SFX] Initialized on user interaction
+lexicon-timebomb-game-production.up.railway.app//api/room/JEGYY:1  Failed to load resource: the server responded with a status of 404 ()
+
+play?mode=join:1  Failed to load resource: the server responded with a status of 404 ())
+
+index-B46YB-PX.js:9 [SFX] AudioContext created, state: running
+index-B46YB-PX.js:9 [SFX] Initialized on user interaction
+lexicon-timebomb-game-production.up.railway.app//api/room/JEGYY:1  Failed to load resource: the server responded with a status of 404 ()
+
+play?mode=join:1  Failed to load resource: the server responded with a status of 404 ()
+index-B46YB-PX.js:118  GET https://lexicon-timebomb-game-production.up.railway.app//api/room/JEGYY 404 (Not Found)
+n @ index-B46YB-PX.js:118
+(anonymous) @ index-B46YB-PX.js:55
+await in (anonymous)
+Cd @ index-B46YB-PX.js:8
+(anonymous) @ index-B46YB-PX.js:8
+tn @ index-B46YB-PX.js:8
+Od @ index-B46YB-PX.js:8
+fp @ index-B46YB-PX.js:9
+up @ index-B46YB-PX.js:9
