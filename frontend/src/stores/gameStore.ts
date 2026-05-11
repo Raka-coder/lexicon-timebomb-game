@@ -46,12 +46,52 @@ interface GameState {
   resetGameState: () => void;
 }
 
+const STORAGE_KEY = "lexicon_game_state";
+
+function loadPersistedState() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return {
+        roomCode: parsed.roomCode || null,
+        myPlayerId: parsed.myPlayerId || null,
+        isHost: parsed.isHost || false,
+        gameStatus: parsed.gameStatus || "idle",
+        players: parsed.players || [],
+      };
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
+const persistedState = loadPersistedState();
+
+function persistState(state: Partial<typeof initialState>) {
+  try {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        roomCode: state.roomCode ?? null,
+        myPlayerId: state.myPlayerId ?? null,
+        isHost: state.isHost ?? false,
+        gameStatus: state.gameStatus ?? "idle",
+        players: state.players ?? [],
+      }),
+    );
+  } catch {
+    // ignore
+  }
+}
+
 const initialState = {
-  roomCode: null,
-  myPlayerId: null,
-  players: [],
-  isHost: false,
-  gameStatus: "idle" as const,
+  roomCode: persistedState?.roomCode ?? null,
+  myPlayerId: persistedState?.myPlayerId ?? null,
+  players: persistedState?.players ?? [],
+  isHost: persistedState?.isHost ?? false,
+  gameStatus: persistedState?.gameStatus ?? ("idle" as const),
   currentWord: "",
   requiredLetter: "",
   wordHistory: [] as string[],
@@ -69,16 +109,28 @@ export const useGameStore = create<GameState>((set) => ({
   ...initialState,
 
   setRoom: (code, playerId, isHost) =>
-    set({
-      roomCode: code,
-      myPlayerId: playerId,
-      isHost,
-      gameStatus: "waiting",
+    set((state) => {
+      const newState = {
+        roomCode: code,
+        myPlayerId: playerId,
+        isHost,
+        gameStatus: "waiting" as const,
+      };
+      persistState({ ...state, ...newState });
+      return newState;
     }),
 
-  setPlayers: (players) => set({ players }),
+  setPlayers: (players) =>
+    set((state) => {
+      persistState({ ...state, players });
+      return { players };
+    }),
 
-  setGameStatus: (status) => set({ gameStatus: status }),
+  setGameStatus: (status) =>
+    set((state) => {
+      persistState({ ...state, gameStatus: status });
+      return { gameStatus: status };
+    }),
 
   setCurrentWord: (word) => set({ currentWord: word }),
 
@@ -109,20 +161,28 @@ export const useGameStore = create<GameState>((set) => ({
 
   setWinnerLoser: (winnerId, loserId) => set({ winnerId, loserId }),
 
-  reset: () => set(initialState),
+  reset: () => {
+    localStorage.removeItem(STORAGE_KEY);
+    set(initialState);
+  },
 
-  resetGameState: () => set({
-    currentWord: "",
-    requiredLetter: "",
-    wordHistory: [],
-    currentPlayerId: null,
-    scores: {},
-    timeLeft: 15,
-    isMyTurn: false,
-    errorMessage: null,
-    isValidating: false,
-    gameStatus: "waiting",
-    winnerId: null,
-    loserId: null,
-  }),
+  resetGameState: () =>
+    set((state) => {
+      const newState = {
+        currentWord: "",
+        requiredLetter: "",
+        wordHistory: [] as string[],
+        currentPlayerId: null,
+        scores: {} as Record<string, number>,
+        timeLeft: 15,
+        isMyTurn: false,
+        errorMessage: null,
+        isValidating: false,
+        gameStatus: "waiting" as const,
+        winnerId: null,
+        loserId: null,
+      };
+      persistState({ ...state, gameStatus: "waiting" });
+      return newState;
+    }),
 }));

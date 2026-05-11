@@ -53,14 +53,12 @@ export function createSocketIO(
 
   const io = new Server(server, {
     cors: {
-      origin: (origin, callback) => {
-        if (!origin || isDev) {
+      origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+        if (!origin || isDev || CONFIG.ALLOWED_ORIGINS.includes("*")) {
           callback(null, true);
           return;
         }
-        const allowedOrigins = CONFIG.CORS_ORIGINS;
-        const isAllowed = allowedOrigins.some((o) => {
-          if (o === "*") return true;
+        const isAllowed = CONFIG.ALLOWED_ORIGINS.some((o: string) => {
           try {
             const allowed = new URL(o);
             const requested = new URL(origin);

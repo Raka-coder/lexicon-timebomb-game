@@ -12,5 +12,5 @@ setupSocketHandlers(io, timerManager);
 server.listen(CONFIG.PORT, () => {
   console.log(`Server running on http://localhost:${CONFIG.PORT}`);
   console.log(`Socket.IO ready`);
-  console.log(`CORS origins: ${CONFIG.CORS_ORIGINS.join(", ")}`);
+  console.log(`Allowed origins: ${CONFIG.ALLOWED_ORIGINS.join(", ")}`);
 });

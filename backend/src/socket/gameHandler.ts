@@ -10,6 +10,8 @@ import {
 import { getRandomStartWord } from "../dictionary/words";
 import { TimerManager } from "../game/timerManager";
 import { CONFIG } from "../lib/constants";
+import { checkRateLimit, validatePayload } from "../lib/security";
+import { submitWordSchema } from "../lib/validation";
 import type {
   PlayerInfo,
   GameStartedPayload,
@@ -53,7 +55,6 @@ export function setupGameHandlers(
       };
       socket.emit("ROOM_ERROR", errorPayload);
 
-      // Force sync player list to correct client-side state
       const players: PlayerInfo[] = Array.from(room.players.values()).map(
         (p) => ({
           id: p.id,
@@ -136,7 +137,28 @@ export function setupGameHandlers(
     });
   });
 
-  socket.on("SUBMIT_WORD", ({ word }: { word: string }) => {
+  socket.on("SUBMIT_WORD", (data: unknown) => {
+    if (!checkRateLimit(socket.id, "SUBMIT_WORD")) {
+      socket.emit("WORD_INVALID", {
+        word: "",
+        reason: "rate_limit",
+        message: "Terlalu banyak request. Tunggu sebentar.",
+      });
+      return;
+    }
+
+    const validation = validatePayload(submitWordSchema, data);
+    if (!validation.valid) {
+      socket.emit("WORD_INVALID", {
+        word: "",
+        reason: "validation_error",
+        message: validation.error,
+      });
+      return;
+    }
+
+    const { word } = validation.data;
+
     const room = getRoomBySocketId(socket.id);
     if (!room || !room.gameState) {
       console.log("SUBMIT_WORD failed: room or gameState not found");
@@ -241,6 +263,10 @@ export function setupGameHandlers(
   });
 
   socket.on("RESTART_GAME", () => {
+    if (!checkRateLimit(socket.id, "RESTART_GAME")) {
+      return;
+    }
+
     console.log(`RESTART_GAME request from ${socket.id}`);
     const room = getRoomBySocketId(socket.id);
     if (!room) return;
@@ -250,7 +276,6 @@ export function setupGameHandlers(
       return;
     }
 
-    // Reset room to waiting state and notify all players
     room.status = "waiting";
     room.gameState = undefined;
     timerManager.stopTurn(room.code);

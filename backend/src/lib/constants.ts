@@ -3,20 +3,20 @@ import { join } from "path";
 
 export const CONFIG = {
   PORT: parseInt(process.env.PORT || "3001"),
-  
-  CORS_ORIGINS: (process.env.CORS_ORIGINS || "http://localhost:5173,http://localhost:5174,http://localhost:3001")
-    .split(",")
-    .map((origin) => origin.trim()),
-  
+
+  ALLOWED_ORIGINS: (process.env.ALLOWED_ORIGINS || "*").split(",").map((s) => s.trim()),
+
   TIMER_DURATION: parseInt(process.env.TIMER_DURATION || "15"),
-  
+
   START_WORD: process.env.START_WORD || "rumah",
-  
+
   WORD_MIN_LENGTH: 3,
-  WORD_MAX_LENGTH: 20,
+  WORD_MAX_LENGTH: 50,
+
+  ROOM_CODE_LENGTH: parseInt(process.env.ROOM_CODE_LENGTH || "6"),
   
-  ROOM_CODE_LENGTH: parseInt(process.env.ROOM_CODE_LENGTH || "5"),
-  
+  MAX_PLAYERS: parseInt(process.env.MAX_PLAYERS || "2"),
+
   AVOID_LETTERS: ["0", "O", "1", "I"],
 } as const;
 

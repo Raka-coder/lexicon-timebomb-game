@@ -6,6 +6,16 @@ import {
   broadcastToRoom,
   getRoomByCode,
 } from "../game/roomManager";
+import {
+  checkRateLimit,
+  validatePayload,
+  sanitizePlayerName,
+} from "../lib/security";
+import {
+  createRoomSchema,
+  joinRoomSchema,
+  syncRoomSchema,
+} from "../lib/validation";
 import type {
   PlayerInfo,
   RoomCreatedPayload,
@@ -15,10 +25,22 @@ import type {
 } from "../types";
 
 export function setupRoomHandlers(io: Server, socket: Socket): void {
-  socket.on("CREATE_ROOM", ({ playerName }: { playerName: string }) => {
-    console.log(`CREATE_ROOM: ${playerName}`);
+  socket.on("CREATE_ROOM", (data: unknown) => {
+    if (!checkRateLimit(socket.id, "CREATE_ROOM")) {
+      socket.emit("ROOM_ERROR", { message: "Terlalu banyak request. Coba beberapa saat lagi." });
+      return;
+    }
 
-    const room = createRoom(socket, playerName);
+    const validation = validatePayload(createRoomSchema, data);
+    if (!validation.valid) {
+      socket.emit("ROOM_ERROR", { message: validation.error });
+      return;
+    }
+
+    const { playerName, password } = validation.data;
+    console.log(`CREATE_ROOM: ${playerName}${password ? " (with password)" : ""}`);
+
+    const room = createRoom(socket, playerName, password);
     const player = room.players.get(socket.id);
 
     const payload: RoomCreatedPayload = {
@@ -32,93 +54,105 @@ export function setupRoomHandlers(io: Server, socket: Socket): void {
     console.log(`Room ${room.code} created, host: ${playerName}`);
   });
 
-  socket.on(
-    "JOIN_ROOM",
-    ({ roomCode, playerName }: { roomCode: string; playerName: string }) => {
-      console.log(`JOIN_ROOM: ${playerName} -> ${roomCode}`);
+  socket.on("JOIN_ROOM", (data: unknown) => {
+    if (!checkRateLimit(socket.id, "JOIN_ROOM")) {
+      socket.emit("ROOM_ERROR", { message: "Terlalu banyak request. Coba beberapa saat lagi." });
+      return;
+    }
 
-      const room = joinRoom(socket, roomCode.toUpperCase(), playerName);
+    const validation = validatePayload(joinRoomSchema, data);
+    if (!validation.valid) {
+      socket.emit("ROOM_ERROR", { message: validation.error });
+      return;
+    }
 
-      if (!room) {
-        const errorPayload: RoomErrorPayload = {
-          message: "Room tidak ditemukan atau penuh",
-        };
-        socket.emit("ROOM_ERROR", errorPayload);
-        console.log(`JOIN_ROOM failed: room not found or full`);
-        return;
-      }
+    const { roomCode, playerName, password } = validation.data;
+    console.log(`JOIN_ROOM: ${playerName} -> ${roomCode}`);
 
-      const player = room.players.get(socket.id);
+    const room = joinRoom(socket, roomCode.toUpperCase(), playerName, password);
 
-      const payload: RoomJoinedPayload = {
-        roomCode: room.code,
-        playerId: player?.id ?? "",
-        playerName: playerName,
-        isHost: false,
+    if (!room) {
+      const errorPayload: RoomErrorPayload = {
+        message: "Room tidak ditemukan atau password salah",
       };
-      socket.emit("ROOM_JOINED", payload);
+      socket.emit("ROOM_ERROR", errorPayload);
+      console.log(`JOIN_ROOM failed: room not found or wrong password`);
+      return;
+    }
 
-      const players: PlayerInfo[] = Array.from(room.players.values()).map(
-        (p) => ({
-          id: p.id,
-          name: p.name,
-          isHost: p.isHost,
-        }),
-      );
+    const player = room.players.get(socket.id);
 
-      const joinedPayload: PlayerJoinedPayload = { players };
-      broadcastToRoom(io, room.code, "PLAYER_JOINED", joinedPayload);
-      console.log(
-        `Player ${playerName} joined room ${room.code}, total players: ${players.length}`,
-      );
-    },
-  );
+    const payload: RoomJoinedPayload = {
+      roomCode: room.code,
+      playerId: player?.id ?? "",
+      playerName: playerName,
+      isHost: false,
+    };
+    socket.emit("ROOM_JOINED", payload);
 
-  socket.on(
-    "SYNC_ROOM",
-    ({ roomCode, playerId }: { roomCode: string; playerId?: string | null }) => {
-      console.log(
-        `SYNC_ROOM request for ${roomCode} from ${socket.id} (playerId: ${playerId ?? "unknown"})`,
-      );
-      const room = getRoomByCode(roomCode.toUpperCase());
-      if (!room) return;
+    const players: PlayerInfo[] = Array.from(room.players.values()).map(
+      (p) => ({
+        id: p.id,
+        name: p.name,
+        isHost: p.isHost,
+      }),
+    );
 
-      if (playerId) {
-        const previousSocketId = Array.from(room.players.entries()).find(
-          ([, p]) => p.id === playerId,
-        )?.[0];
+    const joinedPayload: PlayerJoinedPayload = { players };
+    broadcastToRoom(io, room.code, "PLAYER_JOINED", joinedPayload);
+    console.log(
+      `Player ${playerName} joined room ${room.code}, total players: ${players.length}`,
+    );
+  });
 
-        if (previousSocketId && previousSocketId !== socket.id) {
-          const player = room.players.get(previousSocketId);
-          if (player) {
-            room.players.delete(previousSocketId);
-            player.socketId = socket.id;
-            room.players.set(socket.id, player);
+  socket.on("SYNC_ROOM", (data: unknown) => {
+    const validation = validatePayload(syncRoomSchema, data);
+    if (!validation.valid) {
+      return;
+    }
 
-            if (room.hostSocketId === previousSocketId) {
-              room.hostSocketId = socket.id;
-            }
+    const { roomCode, playerId } = validation.data;
+    console.log(
+      `SYNC_ROOM request for ${roomCode} from ${socket.id} (playerId: ${playerId ?? "unknown"})`,
+    );
 
-            console.log(
-              `SYNC_ROOM remapped player ${player.name} (${player.id}) from ${previousSocketId} to ${socket.id}`,
-            );
+    const room = getRoomByCode(roomCode.toUpperCase());
+    if (!room) return;
+
+    if (playerId) {
+      const previousSocketId = Array.from(room.players.entries()).find(
+        ([, p]) => p.id === playerId,
+      )?.[0];
+
+      if (previousSocketId && previousSocketId !== socket.id) {
+        const player = room.players.get(previousSocketId);
+        if (player) {
+          room.players.delete(previousSocketId);
+          player.socketId = socket.id;
+          room.players.set(socket.id, player);
+
+          if (room.hostSocketId === previousSocketId) {
+            room.hostSocketId = socket.id;
           }
+
+          console.log(
+            `SYNC_ROOM remapped player ${player.name} (${player.id}) from ${previousSocketId} to ${socket.id}`,
+          );
         }
       }
+    }
 
-      // Put socket back in room just in case it reconnected
-      socket.join(room.code);
+    socket.join(room.code);
 
-      const players: PlayerInfo[] = Array.from(room.players.values()).map(
-        (p) => ({
-          id: p.id,
-          name: p.name,
-          isHost: p.isHost,
-        }),
-      );
+    const players: PlayerInfo[] = Array.from(room.players.values()).map(
+      (p) => ({
+        id: p.id,
+        name: p.name,
+        isHost: p.isHost,
+      }),
+    );
 
-      broadcastToRoom(io, room.code, "PLAYER_JOINED", { players });
-      console.log(`Synced room ${roomCode} state to socket ${socket.id}`);
-    },
-  );
+    broadcastToRoom(io, room.code, "PLAYER_JOINED", { players });
+    console.log(`Synced room ${roomCode} state to socket ${socket.id}`);
+  });
 }

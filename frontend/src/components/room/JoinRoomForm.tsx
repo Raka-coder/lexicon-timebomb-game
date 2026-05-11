@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -18,11 +19,12 @@ const formSchema = z.object({
     .string()
     .min(2, "Nama minimal 2 karakter")
     .max(20, "Nama maksimal 20 karakter"),
-  roomCode: z.string().length(5, "Kode room harus 5 karakter"),
+  roomCode: z.string().length(6, "Kode room harus 6 karakter"),
+  password: z.string().max(20, "Password maksimal 20 karakter").optional(),
 });
 
 interface Props {
-  onJoinRoom: (roomCode: string, playerName: string) => void;
+  onJoinRoom: (roomCode: string, playerName: string, password?: string) => void;
 }
 
 const SERVER_URL = normalizeServerUrl(
@@ -32,11 +34,13 @@ const SERVER_URL = normalizeServerUrl(
 );
 
 export function JoinRoomForm({ onJoinRoom }: Props) {
+  const [needsPassword, setNeedsPassword] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       playerName: "",
       roomCode: "",
+      password: "",
     },
   });
 
@@ -44,7 +48,6 @@ export function JoinRoomForm({ onJoinRoom }: Props) {
     const code = values.roomCode.toUpperCase();
 
     try {
-      // Validate room exists before joining
       const res = await fetch(`${SERVER_URL}/api/room/${code}`);
 
       if (!res.ok) {
@@ -63,8 +66,12 @@ export function JoinRoomForm({ onJoinRoom }: Props) {
         return;
       }
 
-      // Directly join - no second click needed
-      onJoinRoom(code, values.playerName.trim());
+      if (data.hasPassword && !needsPassword) {
+        setNeedsPassword(true);
+        return;
+      }
+
+      onJoinRoom(code, values.playerName.trim(), values.password);
     } catch (err) {
       console.error("Join room error:", err);
       form.setError("roomCode", {
@@ -102,7 +109,7 @@ export function JoinRoomForm({ onJoinRoom }: Props) {
                   <Input
                     placeholder="Terminal ID"
                     {...field}
-                    maxLength={5}
+                    maxLength={6}
                     onChange={(e) =>
                       field.onChange(e.target.value.toUpperCase())
                     }
@@ -114,12 +121,33 @@ export function JoinRoomForm({ onJoinRoom }: Props) {
             )}
           />
         </div>
+
+        {needsPassword && (
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <Input
+                    type="password"
+                    placeholder="Room Password"
+                    {...field}
+                    className="bg-white/5 border-white/5 h-12 md:h-14 text-sm font-bold tracking-widest rounded-2xl focus:bg-white/10 transition-all"
+                  />
+                </FormControl>
+                <FormMessage className="text-destructive font-mono text-[10px] uppercase tracking-widest" />
+              </FormItem>
+            )}
+          />
+        )}
+
         <Button
           type="submit"
           className="w-full bg-white/5 border-white/5 hover:bg-white/10 text-white h-12 md:h-14 rounded-2xl text-xs font-black uppercase tracking-[0.2em] flex items-center gap-2 transition-all active:scale-95"
         >
           <LogIn className="h-4 w-4" />
-          Inject Connection
+          {needsPassword ? "Unlock Terminal" : "Inject Connection"}
         </Button>
       </form>
     </Form>

@@ -11,6 +11,7 @@ export interface Room {
   hostSocketId: string;
   status: RoomStatus;
   gameState?: GameState;
+  password?: string | null;
 }
 
 export type RoomStatus = "waiting" | "playing" | "finished";

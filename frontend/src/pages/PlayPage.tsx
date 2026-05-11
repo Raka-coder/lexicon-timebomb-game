@@ -41,18 +41,18 @@ export function PlayPage() {
     }
   }, [roomCode, gameStatus, players.length, isConnected, navigate]);
 
-  const handleCreateRoom = (playerName: string) => {
+  const handleCreateRoom = (playerName: string, password?: string) => {
     if (!isConnected || joining) return;
     navigatedRef.current = false;
     setJoining(true);
-    socket.emit("CREATE_ROOM", { playerName: playerName });
+    socket.emit("CREATE_ROOM", { playerName: playerName, password });
   };
 
-  const handleJoinRoom = (roomCode: string, playerName: string) => {
+  const handleJoinRoom = (roomCode: string, playerName: string, password?: string) => {
     if (!isConnected || joining) return;
     navigatedRef.current = false;
     setJoining(true);
-    socket.emit("JOIN_ROOM", { roomCode: roomCode, playerName: playerName });
+    socket.emit("JOIN_ROOM", { roomCode: roomCode, playerName: playerName, password });
   };
 
   const handleBack = () => {

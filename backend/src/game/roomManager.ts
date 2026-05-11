@@ -1,6 +1,7 @@
 import type { Server, Socket } from "socket.io";
 import type { Player, Room, GameState } from "../types";
 import { CONFIG } from "../lib/constants";
+import { sanitizePlayerName } from "../lib/security";
 
 const rooms = new Map<string, Room>();
 
@@ -13,11 +14,17 @@ function generateRoomCode(): string {
   return code;
 }
 
-export function createRoom(socket: Socket, playerName: string): Room {
+export function createRoom(
+  socket: Socket,
+  playerName: string,
+  password?: string
+): Room {
   const roomCode = generateRoomCode();
+  const sanitizedName = sanitizePlayerName(playerName) || "Player";
+
   const player: Player = {
     id: crypto.randomUUID(),
-    name: playerName,
+    name: sanitizedName,
     socketId: socket.id,
     isHost: true,
   };
@@ -27,26 +34,34 @@ export function createRoom(socket: Socket, playerName: string): Room {
     players: new Map([[socket.id, player]]),
     hostSocketId: socket.id,
     status: "waiting",
+    password: password || null,
   };
 
   rooms.set(roomCode, room);
   socket.join(roomCode);
 
-  console.log(`Room created: ${roomCode} by ${playerName}`);
+  console.log(`Room created: ${roomCode} by ${sanitizedName}${password ? " (protected)" : ""}`);
   return room;
 }
 
 export function joinRoom(
   socket: Socket,
   roomCode: string,
-  playerName: string
+  playerName: string,
+  password?: string
 ): Room | null {
   const room = rooms.get(roomCode);
   if (!room) {
     console.log(`Room not found: ${roomCode}`);
     return null;
   }
-  if (room.players.size >= 2) {
+
+  if (room.password && room.password !== password) {
+    console.log(`Room password incorrect: ${roomCode}`);
+    return null;
+  }
+
+  if (room.players.size >= CONFIG.MAX_PLAYERS) {
     console.log(`Room full: ${roomCode}`);
     return null;
   }
@@ -55,9 +70,11 @@ export function joinRoom(
     return null;
   }
 
+  const sanitizedName = sanitizePlayerName(playerName) || "Player";
+
   const player: Player = {
     id: crypto.randomUUID(),
-    name: playerName,
+    name: sanitizedName,
     socketId: socket.id,
     isHost: false,
   };
@@ -65,7 +82,7 @@ export function joinRoom(
   room.players.set(socket.id, player);
   socket.join(roomCode);
 
-  console.log(`Player ${playerName} joined room ${roomCode}`);
+  console.log(`Player ${sanitizedName} joined room ${roomCode}`);
   return room;
 }
 
@@ -120,10 +137,16 @@ export function broadcastToRoom(
   io.to(roomCode).emit(event, data);
 }
 
-export function getAllRooms(): { code: string; players: number; status: string }[] {
-  return Array.from(rooms.values()).map(room => ({
+export function getAllRooms(): { code: string; players: number; status: string; hasPassword: boolean }[] {
+  return Array.from(rooms.values()).map((room) => ({
     code: room.code,
     players: room.players.size,
     status: room.status,
+    hasPassword: !!room.password,
   }));
+}
+
+export function isRoomPasswordProtected(roomCode: string): boolean {
+  const room = rooms.get(roomCode);
+  return !!room?.password;
 }
