@@ -1,4 +1,4 @@
-# Sambung Kata - Real-Time Word Chain Game
+# Lexicon Timebomb (Word Chain Game)
 
 <p align="center">
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
@@ -15,41 +15,40 @@
 
 <!-- README-I18N:END -->
 
-Sambung Kata is a real-time multiplayer word chain game where two players compete to submit words that start with the last letter of the previous word. This game uses KBBI (Kamus Besar Bahasa Indonesia) validation to ensure all words are valid in Indonesian language.
+Lexicon Timebomb is a real-time multiplayer word chain game. Two players compete to submit words that start with the last letter of the previous word. If time runs out, you lose!
 
 ## Key Features
 
-- **Real-Time Multiplayer** - Two players can play together via WebSocket
-- **KBBI Validation** - Every word is validated using the Official Indonesian Dictionary
-- **Interactive Timer** - Bomb countdown timer with engaging visual effects
-- **Scoring System** - Real-time scores updated for each valid word
-- **Sound Effects** - Procedural audio without external files (Web Audio API)
-- **Responsive** - Optimal display on various screen sizes
+- **Real-Time Multiplayer** — Two players compete simultaneously via WebSocket
+- **KBBI Validation** — Every word is validated against Kamus Besar Bahasa Indonesia
+- **Bomb Timer** — 15-second countdown with dynamic visual effects
+- **Scoring System** — Real-time scoring for each valid word
+- **Sound Effects** — Procedural audio via Web Audio API (no external files)
+- **Responsive** — Optimized for desktop and mobile
 
 ## Tech Stack
 
 ### Backend
-- **Hono** - Modern and fast web framework
-- **Socket.IO** - Real-time communication
-- **TypeScript** - Type-safe programming language
-- **Bun** - Fast JavaScript runtime
+- **Hono** — Modern, fast web framework
+- **Socket.IO** — Real-time communication
+- **TypeScript** — Type safety
+- **Bun** — JavaScript runtime
 
 ### Frontend
-- **React** - Modern UI library
-- **Vite** - Fast build tool
-- **TypeScript** - Type safety for code quality
-- **Tailwind CSS** - Utility-first styling
-- **shadcn/ui** - Customizable UI components
-- **Zustand** - Simple state management
-- **TanStack Query** - Data fetching and caching
+- **React** — UI library
+- **Vite** — Build tool
+- **TypeScript** — Type safety
+- **Tailwind CSS** — Utility-first styling
+- **shadcn/ui** — Ready-to-use UI components
+- **Zustand** — State management
 
 ## How to Run
 
 ### Prerequisites
-- Node.js (v18+) or Bun
-- npm or bun as package manager
+- Node.js v18+ or Bun
+- npm or bun
 
-### Clone and Install
+### Installation
 
 ```bash
 # Clone repository
@@ -61,39 +60,39 @@ cd backend && bun install
 cd ../frontend && npm install
 ```
 
-### Running Backend
+### Run Backend
 
 ```bash
 cd backend
 bun run index.ts
 ```
 
-Backend will run at `http://localhost:3001`
+Backend runs at `http://localhost:3001`
 
-### Running Frontend
+### Run Frontend
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-Frontend will run at `http://localhost:5173`
+Frontend runs at `http://localhost:5173`
 
 ## How to Play
 
-1. **Create Room** - Click "Buat Room", enter your name, you'll get a room code
-2. **Share Code** - Share the room code with your friend
-3. **Join Room** - Friend enters room code and name to join
-4. **Start Game** - If there are 2 players, host can start the game
-5. **Submit Words** - Players take turns submitting words starting with the last letter of the previous word
-6. **Time Limit** - Each turn has a 15-second timer
-7. **Game Over** - If a player cannot submit a word within the time limit, the game ends
+1. **Create Room** — Click "Host", enter your name, get a room code
+2. **Share Code** — Share the room code with your friend
+3. **Join Room** — Friend enters room code and name to join
+4. **Start Game** — Host starts when there are 2 players
+5. **Chain Words** — Players take turns submitting words starting with the last letter of the previous word
+6. **Time Limit** — Each turn has a 15-second timer
+7. **Game Over** — If a player fails to answer within the time limit, they lose
 
 ### Game Rules
 
-- Minimum word length is 3 characters
-- Words must be valid in KBBI
-- Words cannot be repeated (already used)
+- Minimum word length: 3 characters
+- Words must be valid according to KBBI
+- Words cannot be used twice
 - Words must start with the last letter of the previous word
 
 ## Project Structure
@@ -139,19 +138,19 @@ GET /api/dictionary/check/:word
 ## Socket Events
 
 ### Client → Server
-- `CREATE_ROOM` - Create new room
-- `JOIN_ROOM` - Join existing room
-- `START_GAME` - Start the game
-- `SUBMIT_WORD` - Submit a word
+- `CREATE_ROOM` — Create new room
+- `JOIN_ROOM` — Join existing room
+- `START_GAME` — Start the game
+- `SUBMIT_WORD` — Submit a word
 
 ### Server → Client
-- `ROOM_CREATED` - Room successfully created
-- `PLAYER_JOINED` - New player joined
-- `TURN_START` - Turn started
-- `WORD_VALID` - Word is valid
-- `WORD_INVALID` - Word is invalid
-- `TIMER_SYNC` - Timer synchronization
-- `GAME_OVER` - Game ended
+- `ROOM_CREATED` — Room successfully created
+- `PLAYER_JOINED` — New player joined
+- `TURN_START` — Turn started
+- `WORD_VALID` — Word is valid
+- `WORD_INVALID` — Word is invalid
+- `TIMER_SYNC` — Timer synchronization
+- `GAME_OVER` — Game ended
 
 ## Deployment
 
@@ -170,7 +169,7 @@ vercel
 
 ## Contributing
 
-Please create a pull request if you'd like to contribute to this project.
+Pull requests are welcome for improvements and fixes.
 
 ## License
 
@@ -179,5 +178,5 @@ This project was created for UAS Web Programming assignment.
 ---
 
 <p align="center">
-  Made with ❤️ for UAS assignment
+  Made with ❤️
 </p>

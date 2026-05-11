@@ -1,1 +1,0 @@
-Saat saya mengakses ini https://lexicon-timebomb.vercel.app/lobby pada browser setelah refresh muncul notfound, apa penerapan ini cukup baik?, apakah bisa dilakukan redirect ke halaman utama jika pemain belum membuat room atau join room 

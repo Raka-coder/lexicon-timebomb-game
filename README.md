@@ -1,4 +1,4 @@
-# Sambung Kata - Game Kata Rantai Real-Time
+# Lexicon Timebomb (Game Sambung Kata)
 
 <p align="center">
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript">
@@ -15,41 +15,40 @@
 
 <!-- README-I18N:END -->
 
-Sambung Kata adalah game kata rantai multiplayer real-time di mana dua pemain bersaing menyubmit kata yang dimulai dengan huruf terakhir kata sebelumnya. Game ini menggunakan validasi KBBI untuk memastikan kata yang digunakan valid dalam bahasa Indonesia.
+Lexicon Timebomb adalah game sambung kata multiplayer real-time. Dua pemain bersaing untuk menyusun kata yang dimulai dari huruf terakhir kata sebelumnya. Jika waktu habis, pemain kalah!
 
 ## Fitur Utama
 
-- **Multiplayer Real-Time** - Dua pemain dapat bermain bersama secara bersamaan melalui WebSocket
-- **Validasi KBBI** - Setiap kata divalidasi menggunakan Kamus Besar Bahasa Indonesia (KBBI)
-- **Timer Interaktif** - Timer bom countdown dengan efek visual menarik
-- **Sistem Skor** - Skor real-time yang diperbarui setiap kata valid
-- **Efek Suara** - Suara procedural tanpa file eksternal (Web Audio API)
-- **Responsif** - Tampilan yang optimal di berbagai ukuran layar
+- **Multiplayer Real-Time** — Dua pemain bermain bersamaan via WebSocket
+- **Validasi KBBI** — Setiap kata divalidasi dengan Kamus Besar Bahasa Indonesia
+- **Timer Bom** — Countdown 15 detik dengan efek visual dinamis
+- **Sistem Skor** — Skor real-time untuk setiap kata valid
+- **Efek Suara** — Procedural sound via Web Audio API (tanpa file eksternal)
+- **Responsif** — Optimal di desktop dan mobile
 
-## Teknologi yang Digunakan
+## Teknologi
 
 ### Backend
-- **Hono** - Framework web modern dan cepat
-- **Socket.IO** - Untuk komunikasi real-time
-- **TypeScript** - Bahasa pemrograman dengan type safety
-- **Bun** - JavaScript runtime yang cepat
+- **Hono** — Framework web modern dan cepat
+- **Socket.IO** — Komunikasi real-time
+- **TypeScript** — Type safety
+- **Bun** — JavaScript runtime
 
 ### Frontend
-- **React** - Library UI modern
-- **Vite** - Build tool yang cepat
-- **TypeScript** - Type safety untuk kualitas kode
-- **Tailwind CSS** - Styling utility-first
-- **shadcn/ui** - Komponen UI yang dapat dikustomisasi
-- **Zustand** - State management yang sederhana
-- **TanStack Query** - Data fetching dan caching
+- **React** — Library UI
+- **Vite** — Build tool
+- **TypeScript** — Type safety
+- **Tailwind CSS** — Utility-first styling
+- **shadcn/ui** — Komponen UI siap pakai
+- **Zustand** — State management
 
 ## Cara Menjalankan
 
-### Prerequisites
-- Node.js (v18+) atau Bun
-- npm atau bun sebagai package manager
+### Prasyarat
+- Node.js v18+ atau Bun
+- npm atau bun
 
-### Clone dan Install
+### Instalasi
 
 ```bash
 # Clone repository
@@ -61,40 +60,40 @@ cd backend && bun install
 cd ../frontend && npm install
 ```
 
-### Menjalankan Backend
+### Jalankan Backend
 
 ```bash
 cd backend
 bun run index.ts
 ```
 
-Backend akan berjalan di `http://localhost:3001`
+Backend berjalan di `http://localhost:3001`
 
-### Menjalankan Frontend
+### Jalankan Frontend
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-Frontend akan berjalan di `http://localhost:5173`
+Frontend berjalan di `http://localhost:5173`
 
 ## Cara Bermain
 
-1. **Buat Room** - Klik tombol "Buat Room", masukkan nama, lalu akan mendapatkan kode room
-2. **Bagikan Kode** - Bagikan kode room kepada teman
-3. **Join Room** - Teman masukkan kode room dan nama untuk bergabung
-4. **Mulai Game** - Jika sudah ada 2 pemain, host dapat memulai game
-5. **Main Kata** - Pemain bergantian menyubmit kata yang dimulai dengan huruf terakhir kata sebelumnya
-6. **Batas Waktu** - Setiap giliran memiliki waktu 15 detik
-7. **Game Over** - Jika pemain tidak dapat menyubmit kata dalam waktu yang ditentukan, game selesai
+1. **Buat Room** — Klik "Host", masukkan nama, dapatkan kode room
+2. **Bagikan Kode** — Sebarkan kode room ke teman
+3. **Gabung Room** — Teman masukkan kode dan nama untuk bergabung
+4. **Mulai Game** — Host memulai jika sudah ada 2 pemain
+5. **Sambung Kata** — Pemain bergantian menulis kata berawalan huruf terakhir kata sebelumnya
+6. **Batas Waktu** — Setiap giliran terbatas 15 detik
+7. **Game Over** — Pemain yang tidak bisa menjawab dalam waktu yang ditentukan kalah
 
-### Aturan Game
+### Aturan
 
-- Panjang kata minimal 3 karakter
-- Kata harus valid dalam KBBI
-- Kata tidak boleh重复 (sudah digunakan sebelumnya)
-- Kata harus dimulai dengan huruf terakhir kata sebelumnya
+- Kata minimal 3 karakter
+- Kata harus valid menurut KBBI
+- Kata tidak boleh dipakai dua kali
+- Kata harus diawali dengan huruf terakhir kata sebelumnya
 
 ## Struktur Proyek
 
@@ -105,8 +104,8 @@ root/
 │   │   ├── socket/        # Socket.IO handlers
 │   │   ├── game/          # Game logic & timer
 │   │   ├── routes/        # API routes
-│   │   ├── dictionary/    # KBBI validation
-│   │   └── data/          # KBBI word list
+│   │   ├── dictionary/    # Validasi KBBI
+│   │   └── data/          # Daftar kata KBBI
 │   └── package.json
 ├── frontend/              # Client frontend
 │   ├── src/
@@ -119,19 +118,19 @@ root/
 └── README.md              # File ini
 ```
 
-## API Endpoints
+## API Endpoint
 
 ### Health Check
 ```
 GET /api/health
 ```
 
-### Check Room
+### Cek Room
 ```
 GET /api/room/:code
 ```
 
-### Validate Word
+### Validasi Kata
 ```
 GET /api/dictionary/check/:word
 ```
@@ -139,20 +138,19 @@ GET /api/dictionary/check/:word
 ## Socket Events
 
 ### Client → Server
-- `CREATE_ROOM` - Membuat room baru
-- `JOIN_ROOM` - Bergabung ke room
-- `START_GAME` - Memulai game
-- `SUBMIT_WORD` - Mengirim kata
+- `CREATE_ROOM` — Buat room baru
+- `JOIN_ROOM` — Gabung room
+- `START_GAME` — Mulai game
+- `SUBMIT_WORD` — Kirim kata
 
 ### Server → Client
-- `ROOM_CREATED` - Room berhasil dibuat
-- `PLAYER_JOINED` - Pemain baru bergabung
-- `TURN_START` - Giliran dimulai
-- `WORD_VALID` - Kata valid
-- `WORD_INVALID` - Kata tidak valid
-- `TIMER_SYNC` - Sinkronisasi timer
-- `GAME_OVER` - Game selesai
-
+- `ROOM_CREATED` — Room berhasil dibuat
+- `PLAYER_JOINED` — Pemain baru bergabung
+- `TURN_START` — Giliran dimulai
+- `WORD_VALID` — Kata valid
+- `WORD_INVALID` — Kata tidak valid
+- `TIMER_SYNC` — Sinkronisasi timer
+- `GAME_OVER` — Game selesai
 
 ## Deployment
 
@@ -171,7 +169,7 @@ vercel
 
 ## Kontribusi
 
-Silakan buat pull request jika ingin berkontribusi pada proyek ini.
+Pull request diterima untuk perbaikan dan peningkatan.
 
 ## Lisensi
 
@@ -180,5 +178,5 @@ Proyek ini dibuat untuk tugas UAS Web Programming.
 ---
 
 <p align="center">
-  Dibuat dengan ❤️ untuk tugas UAS
+  Dibuat dengan ❤️
 </p>

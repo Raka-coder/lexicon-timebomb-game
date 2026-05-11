@@ -41,5 +41,13 @@ coverage/
 # Skills
 skills
 
+# Project docs (local only)
+GEMINI.md
+PEMBAHASAN.md
+plan.md
+prompt.md
+sambung-kata-PRD.md
+docs/
+
 # Stakpak session files
 .stakpak/session*
