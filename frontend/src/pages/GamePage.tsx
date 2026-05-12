@@ -29,6 +29,7 @@ export function GamePage() {
     resetGameState
   } = useGameStore();
   const [muted, setMuted] = useState(sfx.isMuted());
+  const [isRestarting, setIsRestarting] = useState(false);
 
   useGameSocket(socket);
 
@@ -60,13 +61,50 @@ export function GamePage() {
   };
 
   const handleRestartGame = () => {
-    socket?.emit("START_GAME_AGAIN");
+    if (!socket || isRestarting) return;
+    setIsRestarting(true);
+    socket
+      .timeout(5000)
+      .emit(
+        "START_GAME_AGAIN",
+        (err: Error | null, ack?: { ok: boolean; message?: string }) => {
+          if (err) {
+            console.warn("[game/restart] START_GAME_AGAIN ack timeout, fallback to RESTART_GAME");
+            socket.emit("RESTART_GAME");
+            setIsRestarting(false);
+            return;
+          }
+
+          if (ack && !ack.ok) {
+            console.warn("[game/restart] rejected", ack.message);
+            setIsRestarting(false);
+            return;
+          }
+        },
+      );
   };
 
   const handleExitGame = () => {
     socket?.emit("LEAVE_GAME");
     resetGameState();
   };
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const clearRestarting = () => setIsRestarting(false);
+    socket.on("GAME_RESTARTED", clearRestarting);
+    socket.on("ROOM_RESET", clearRestarting);
+    socket.on("ROOM_ERROR", clearRestarting);
+    socket.on("LEFT_GAME", clearRestarting);
+
+    return () => {
+      socket.off("GAME_RESTARTED", clearRestarting);
+      socket.off("ROOM_RESET", clearRestarting);
+      socket.off("ROOM_ERROR", clearRestarting);
+      socket.off("LEFT_GAME", clearRestarting);
+    };
+  }, [socket]);
 
   if (gameStatus !== "playing" && gameStatus !== "finished") {
     return (
@@ -227,6 +265,8 @@ export function GamePage() {
           scores={scores}
           onPlayAgain={handleRestartGame}
           onLeave={handleExitGame}
+          playAgainDisabled={isRestarting}
+          playAgainLabel={isRestarting ? "Starting..." : "Play Again"}
         />
       </div>
 

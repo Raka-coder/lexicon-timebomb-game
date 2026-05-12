@@ -30,6 +30,111 @@ export function setupGameHandlers(
   socket: Socket,
   timerManager: TimerManager,
 ): void {
+  const startGameAgain = (
+    socketId: string,
+    ack?: (response: { ok: boolean; message?: string }) => void,
+  ) => {
+    console.log(`START_GAME_AGAIN request from ${socketId}`);
+
+    const room = getRoomBySocketId(socketId);
+    if (!room) {
+      ack?.({ ok: false, message: "Room tidak ditemukan" });
+      return;
+    }
+
+    if (room.status !== "finished") {
+      console.log("START_GAME_AGAIN ignored: room not finished");
+      ack?.({ ok: false, message: "Game belum selesai" });
+      return;
+    }
+
+    const playerCount = room.players.size;
+    if (playerCount < 2) {
+      const message = "Minimal 2 pemain untuk mulai";
+      socket.emit("ROOM_ERROR", { message });
+      ack?.({ ok: false, message });
+      return;
+    }
+
+    const playersArray = Array.from(room.players.values());
+    const playerIds = playersArray.map((p) => p.id);
+
+    const lastLoserId = room.gameState?.currentPlayerId ?? null;
+    let firstPlayerId = playerIds[0];
+    if (lastLoserId) {
+      const loserIndex = playerIds.indexOf(lastLoserId);
+      firstPlayerId =
+        playerIds[(loserIndex + 1) % playerIds.length] ?? playerIds[0];
+    } else {
+      const hostPlayerId = room.players.get(room.hostSocketId)?.id ?? null;
+      const hostFirst = getHostFirstPlayerId(playerIds, hostPlayerId);
+      if (hostFirst) firstPlayerId = hostFirst;
+    }
+
+    if (!firstPlayerId) {
+      console.log("START_GAME_AGAIN failed: no first player found");
+      ack?.({ ok: false, message: "Gagal menentukan giliran pertama" });
+      return;
+    }
+
+    const startWord = getRandomStartWord() || CONFIG.START_WORD;
+    const gameState = initGameState(playerIds, startWord, firstPlayerId);
+
+    room.gameState = gameState;
+    room.status = "playing";
+
+    const players: PlayerInfo[] = playersArray.map((p) => ({
+      id: p.id,
+      name: p.name,
+      isHost: p.isHost,
+    }));
+
+    io.to(room.code).emit("GAME_RESTARTED", {
+      players,
+      currentWord: gameState.currentWord ?? "",
+      requiredLetter: gameState.requiredLetter ?? "",
+      currentPlayerId: firstPlayerId,
+      scores: {},
+    });
+
+    const turnStartPayload: TurnStartPayload = {
+      currentPlayerId: firstPlayerId,
+      currentWord: gameState.currentWord ?? "",
+      requiredLetter: gameState.requiredLetter ?? "",
+      scores: {},
+    };
+    io.to(room.code).emit("TURN_START", turnStartPayload);
+
+    for (const [sockId] of room.players) {
+      updateOnlineStatus(sockId, "playing", room.code);
+    }
+    broadcastOnlineUsers(io);
+
+    console.log(
+      `Game restarted in room ${room.code}, first player: ${firstPlayerId}`,
+    );
+
+    timerManager.stopTurn(room.code);
+    timerManager.startTurn(room.code, firstPlayerId, () => {
+      room.status = "finished";
+      const loserId = gameState.currentPlayerId ?? "";
+      const winnerId = playerIds.find((id) => id !== loserId) ?? "";
+
+      const gameOverPayload: GameOverPayload = {
+        winnerId,
+        loserId,
+        reason: "timeout",
+        scores: gameState.scores,
+        wordHistory: gameState.wordHistory,
+        roomStatus: "playing",
+      };
+      timerManager.stopTurn(room.code);
+      io.to(room.code).emit("GAME_OVER", gameOverPayload);
+    });
+
+    ack?.({ ok: true });
+  };
+
   socket.on("START_GAME", () => {
     const socketId = socket.id;
     console.log(`START_GAME request from ${socketId}`);
@@ -269,105 +374,12 @@ export function setupGameHandlers(
     );
   });
 
-  socket.on("START_GAME_AGAIN", () => {
-    const socketId = socket.id;
-    console.log(`START_GAME_AGAIN request from ${socketId}`);
-
-    const room = getRoomBySocketId(socketId);
-    if (!room) return;
-
-    if (room.status !== "finished") {
-      console.log("START_GAME_AGAIN ignored: room not finished");
-      return;
-    }
-
-    const playerCount = room.players.size;
-    if (playerCount < 2) {
-      socket.emit("ROOM_ERROR", { message: "Minimal 2 pemain untuk mulai" });
-      return;
-    }
-
-    const player = room.players.get(socketId);
-    if (!player?.isHost) {
-      socket.emit("ROOM_ERROR", { message: "Hanya host yang bisa mulai game" });
-      return;
-    }
-
-    const playersArray = Array.from(room.players.values());
-    const playerIds = playersArray.map((p) => p.id);
-
-    const lastLoserId = room.gameState?.currentPlayerId ?? null;
-    let firstPlayerId = playerIds[0];
-    if (lastLoserId) {
-      const loserIndex = playerIds.indexOf(lastLoserId);
-      firstPlayerId =
-        playerIds[(loserIndex + 1) % playerIds.length] ?? playerIds[0];
-    } else {
-      const hostPlayerId = room.players.get(room.hostSocketId)?.id ?? null;
-      const hostFirst = getHostFirstPlayerId(playerIds, hostPlayerId);
-      if (hostFirst) firstPlayerId = hostFirst;
-    }
-
-    if (!firstPlayerId) {
-      console.log("START_GAME_AGAIN failed: no first player found");
-      return;
-    }
-
-    const startWord = getRandomStartWord() || CONFIG.START_WORD;
-    const gameState = initGameState(playerIds, startWord, firstPlayerId);
-
-    room.gameState = gameState;
-    room.status = "playing";
-
-    const players: PlayerInfo[] = playersArray.map((p) => ({
-      id: p.id,
-      name: p.name,
-      isHost: p.isHost,
-    }));
-
-    io.to(room.code).emit("GAME_RESTARTED", {
-      players,
-      currentWord: gameState.currentWord ?? "",
-      requiredLetter: gameState.requiredLetter ?? "",
-      currentPlayerId: firstPlayerId,
-      scores: {},
-    });
-
-    const turnStartPayload: TurnStartPayload = {
-      currentPlayerId: firstPlayerId,
-      currentWord: gameState.currentWord ?? "",
-      requiredLetter: gameState.requiredLetter ?? "",
-      scores: {},
-    };
-    io.to(room.code).emit("TURN_START", turnStartPayload);
-
-    for (const [sockId] of room.players) {
-      updateOnlineStatus(sockId, "playing", room.code);
-    }
-    broadcastOnlineUsers(io);
-
-    console.log(
-      `Game restarted in room ${room.code}, first player: ${firstPlayerId}`,
-    );
-
-    timerManager.stopTurn(room.code);
-    timerManager.startTurn(room.code, firstPlayerId, () => {
-      room.status = "finished";
-      const loserId = gameState.currentPlayerId ?? "";
-      const winnerId = playerIds.find((id) => id !== loserId) ?? "";
-
-      const gameOverPayload: GameOverPayload = {
-        winnerId,
-        loserId,
-        reason: "timeout",
-        scores: gameState.scores,
-        wordHistory: gameState.wordHistory,
-        roomStatus: "playing",
-      };
-      timerManager.stopTurn(room.code);
-      io.to(room.code).emit("GAME_OVER", gameOverPayload);
-    });
-  });
+  socket.on(
+    "START_GAME_AGAIN",
+    (ack?: (response: { ok: boolean; message?: string }) => void) => {
+      startGameAgain(socket.id, ack);
+    },
+  );
 
   socket.on("LEAVE_GAME", () => {
     const socketId = socket.id;

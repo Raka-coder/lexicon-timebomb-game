@@ -19,6 +19,8 @@ interface GameOverModalProps {
   scores: Record<string, number>;
   onPlayAgain: () => void;
   onLeave: () => void;
+  playAgainDisabled?: boolean;
+  playAgainLabel?: string;
 }
 
 export function GameOverModal({
@@ -31,6 +33,8 @@ export function GameOverModal({
   scores,
   onPlayAgain,
   onLeave,
+  playAgainDisabled = false,
+  playAgainLabel = "Play Again",
 }: GameOverModalProps) {
   const winnerName = players.find((p) => p.id === winnerId)?.name || "Player";
   const loserName = players.find((p) => p.id === loserId)?.name || "Player";
@@ -52,7 +56,7 @@ export function GameOverModal({
                 {isWinner ? "Victory Achieved" : "Defeat - Game Over"}
               </DialogTitle>
             </VisuallyHidden>
-            <DialogHeader className="text-center space-y-4">
+            <DialogHeader className="text-center sm:text-center space-y-4">
               <div
                 className={`p-4 w-20 h-20 mx-auto flex items-center justify-center rounded-full border-2 ${
                   isWinner
@@ -84,7 +88,7 @@ export function GameOverModal({
               </DialogTitle>
 
               <DialogDescription
-                className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-[0.2em] glass border text-center ${
+                className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-[0.2em] glass border text-center mx-auto ${
                   isWinner
                     ? "text-accent border-accent/30"
                     : "text-destructive border-destructive/20"
@@ -115,10 +119,11 @@ export function GameOverModal({
             <div className="flex flex-col gap-3">
               <Button
                 onClick={onPlayAgain}
+                disabled={playAgainDisabled}
                 className="w-full btn-stitch text-white font-bold py-5 rounded-xl text-sm uppercase tracking-wider transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98]"
               >
                 <RotateCcw className="h-4 w-4 mr-2" />
-                Play Again
+                {playAgainLabel}
               </Button>
               <Button
                 variant="ghost"
