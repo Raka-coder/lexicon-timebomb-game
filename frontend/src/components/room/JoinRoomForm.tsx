@@ -25,6 +25,7 @@ const formSchema = z.object({
 
 interface Props {
   onJoinRoom: (roomCode: string, playerName: string, password?: string) => void;
+  defaultPlayerName?: string;
 }
 
 const SERVER_URL = normalizeServerUrl(
@@ -33,12 +34,12 @@ const SERVER_URL = normalizeServerUrl(
     getDefaultServerUrl(),
 );
 
-export function JoinRoomForm({ onJoinRoom }: Props) {
+export function JoinRoomForm({ onJoinRoom, defaultPlayerName }: Props) {
   const [needsPassword, setNeedsPassword] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      playerName: "",
+      playerName: defaultPlayerName || "",
       roomCode: "",
       password: "",
     },

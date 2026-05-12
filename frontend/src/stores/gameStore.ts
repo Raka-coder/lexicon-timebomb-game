@@ -69,7 +69,7 @@ function loadPersistedState() {
 
 const persistedState = loadPersistedState();
 
-function persistState(state: { roomCode?: string | null; myPlayerId?: string | null; players?: Player[]; isHost?: boolean; gameStatus?: string }) {
+function persistState(state: { roomCode?: string | null; myPlayerId?: string | null; players?: Player[]; isHost?: boolean; gameStatus?: string; currentPlayerId?: string | null }) {
   try {
     localStorage.setItem(
       STORAGE_KEY,

@@ -163,9 +163,9 @@ export function PlayPage() {
               </div>
 
               {playerMode === "host" ? (
-                <CreateRoomForm onCreateRoom={handleCreateRoom} />
+                <CreateRoomForm onCreateRoom={handleCreateRoom} defaultPlayerName={username ?? undefined} />
               ) : (
-                <JoinRoomForm onJoinRoom={handleJoinRoom} />
+                <JoinRoomForm onJoinRoom={handleJoinRoom} defaultPlayerName={username ?? undefined} />
               )}
 
               {!isAuthenticated && (
@@ -199,7 +199,7 @@ export function PlayPage() {
           </div>
         </div>
 
-        <div className="hidden lg:block w-72 flex-shrink-0">
+        <div className="hidden lg:block w-72 shrink-0">
           <OnlineUsersPanel className="sticky top-8" />
         </div>
       </div>

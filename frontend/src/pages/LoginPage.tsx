@@ -1,11 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  getDefaultServerUrl,
-  normalizeServerUrl,
-  useSocket,
-} from "@/hooks/useSocket";
+import { useSocket } from "@/hooks/useSocket";
 import { useAuthStore } from "@/stores/authStore";
+import { useGameStore } from "@/stores/gameStore";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -26,32 +23,15 @@ export function LoginPage() {
     setAuthError,
     clearAuthError,
   } = useAuthStore();
+  const { reset } = useGameStore();
   const navigate = useNavigate();
-  const loginTimeoutRef = useRef<number | null>(null);
-  const apiBaseUrl = normalizeServerUrl(
-    import.meta.env.VITE_API_URL || import.meta.env.VITE_WS_URL || getDefaultServerUrl(),
-  );
 
   useEffect(() => {
     if (isAuthenticated) {
+      reset();
       navigate("/play");
     }
-  }, [isAuthenticated, navigate]);
-
-  useEffect(() => {
-    if (authRequest !== "logging_in" && loginTimeoutRef.current) {
-      window.clearTimeout(loginTimeoutRef.current);
-      loginTimeoutRef.current = null;
-    }
-  }, [authRequest]);
-
-  useEffect(() => {
-    return () => {
-      if (loginTimeoutRef.current) {
-        window.clearTimeout(loginTimeoutRef.current);
-      }
-    };
-  }, []);
+  }, [isAuthenticated, navigate, reset]);
 
   const handleLogin = (username: string, password: string) => {
     clearAuthError();
@@ -66,40 +46,20 @@ export function LoginPage() {
       return;
     }
     startLogin();
+    let acked = false;
+    const ackTimer = window.setTimeout(() => {
+      if (!acked) {
+        setAuthError("Server tidak merespons. Pastikan backend aktif, lalu coba lagi.");
+      }
+    }, 8000);
     socket
       .timeout(8000)
       .emit("LOGIN", { username, password }, (err: Error | null, ack?: AuthAck) => {
+        acked = true;
+        window.clearTimeout(ackTimer);
         if (err) {
           console.error("[auth/login] ack timeout", { message: err.message });
-          void (async () => {
-            try {
-              console.warn("[auth/login] trying HTTP fallback /api/auth/login");
-              const res = await fetch(`${apiBaseUrl}/api/auth/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
-              });
-              const body = await res.json();
-              if (!res.ok || !body?.ok) {
-                const message =
-                  body?.message ||
-                  "Server belum merespons event LOGIN. Periksa backend & URL socket.";
-                setAuthError(message);
-                return;
-              }
-              console.log("[auth/login] HTTP fallback success");
-              useAuthStore.getState().markLoginSuccess(
-                body.userId,
-                body.username,
-                body.token,
-              );
-            } catch (fallbackErr) {
-              console.error("[auth/login] HTTP fallback failed", fallbackErr);
-              setAuthError(
-                "Server belum merespons event LOGIN. Periksa backend & URL socket.",
-              );
-            }
-          })();
+          setAuthError("Server tidak merespons. Pastikan backend aktif, lalu coba lagi.");
           return;
         }
         console.log("[auth/login] ack", ack);
@@ -107,15 +67,6 @@ export function LoginPage() {
           setAuthError(ack.message || "Login gagal.");
         }
       });
-    loginTimeoutRef.current = window.setTimeout(() => {
-      const { authRequest: latestRequest } = useAuthStore.getState();
-      if (latestRequest === "logging_in") {
-        console.error("[auth/login] no USER_LOGGED_IN/AUTH_ERROR after timeout");
-        setAuthError(
-          "Server belum merespons. Pastikan backend aktif, lalu coba lagi.",
-        );
-      }
-    }, 8000);
   };
 
   const handleBack = () => {

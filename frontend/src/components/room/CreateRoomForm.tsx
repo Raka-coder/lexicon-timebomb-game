@@ -14,14 +14,15 @@ const formSchema = z.object({
 
 interface Props {
   onCreateRoom: (playerName: string, password?: string) => void;
+  defaultPlayerName?: string;
 }
 
-export function CreateRoomForm({ onCreateRoom }: Props) {
+export function CreateRoomForm({ onCreateRoom, defaultPlayerName }: Props) {
   const [usePassword, setUsePassword] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      playerName: "",
+      playerName: defaultPlayerName || "",
       password: "",
     },
   });
@@ -76,7 +77,7 @@ export function CreateRoomForm({ onCreateRoom }: Props) {
             type="button"
             variant="ghost"
             onClick={() => setUsePassword(!usePassword)}
-            className="flex-shrink-0 h-12 md:h-14 px-4 rounded-2xl border border-white/10 text-white/60 hover:text-white hover:border-primary/40 transition-all"
+            className="shrink-0 h-12 md:h-14 px-4 rounded-2xl border border-white/10 text-white/60 hover:text-white hover:border-primary/40 transition-all"
           >
             {usePassword ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
           </Button>

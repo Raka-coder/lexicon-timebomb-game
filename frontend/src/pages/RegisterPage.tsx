@@ -1,10 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  getDefaultServerUrl,
-  normalizeServerUrl,
-  useSocket,
-} from "@/hooks/useSocket";
+import { useSocket } from "@/hooks/useSocket";
 import { useAuthStore } from "@/stores/authStore";
 import { RegisterForm } from "@/components/auth/RegisterForm";
 import { Button } from "@/components/ui/button";
@@ -28,12 +24,9 @@ export function RegisterPage() {
     setAuthError,
     clearAuthError,
     consumeRegisterSuccess,
+    markRegisterSuccess,
   } = useAuthStore();
   const navigate = useNavigate();
-  const registerTimeoutRef = useRef<number | null>(null);
-  const apiBaseUrl = normalizeServerUrl(
-    import.meta.env.VITE_API_URL || import.meta.env.VITE_WS_URL || getDefaultServerUrl(),
-  );
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -42,26 +35,23 @@ export function RegisterPage() {
   }, [isAuthenticated, navigate]);
 
   useEffect(() => {
+    if (!socket) return;
+    const handleRegistered = ({ username }: { username: string }) => {
+      console.log("[auth/register] USER_REGISTERED received", username);
+      markRegisterSuccess(username);
+      toast.success(`Akun "${username}" berhasil dibuat!`);
+      navigate("/login");
+    };
+    socket.on("USER_REGISTERED", handleRegistered);
+    return () => { socket?.off("USER_REGISTERED", handleRegistered); };
+  }, [socket, markRegisterSuccess, navigate]);
+
+  useEffect(() => {
     if (justRegisteredUsername) {
       consumeRegisterSuccess();
       navigate("/login");
     }
   }, [justRegisteredUsername, consumeRegisterSuccess, navigate]);
-
-  useEffect(() => {
-    if (authRequest !== "registering" && registerTimeoutRef.current) {
-      window.clearTimeout(registerTimeoutRef.current);
-      registerTimeoutRef.current = null;
-    }
-  }, [authRequest]);
-
-  useEffect(() => {
-    return () => {
-      if (registerTimeoutRef.current) {
-        window.clearTimeout(registerTimeoutRef.current);
-      }
-    };
-  }, []);
 
   const handleRegister = (username: string, password: string) => {
     clearAuthError();
@@ -76,40 +66,23 @@ export function RegisterPage() {
       return;
     }
     startRegister();
+    let acked = false;
+    const ackTimer = window.setTimeout(() => {
+      if (!acked) {
+        setAuthError("Server tidak merespons. Pastikan backend aktif, lalu coba lagi.");
+      }
+    }, 8000);
     socket
       .timeout(8000)
       .emit(
         "REGISTER",
         { username, password },
         (err: Error | null, ack?: AuthAck) => {
+          acked = true;
+          window.clearTimeout(ackTimer);
           if (err) {
             console.error("[auth/register] ack timeout", { message: err.message });
-            void (async () => {
-              try {
-                console.warn("[auth/register] trying HTTP fallback /api/auth/register");
-                const res = await fetch(`${apiBaseUrl}/api/auth/register`, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ username, password }),
-                });
-                const body = await res.json();
-                if (!res.ok || !body?.ok) {
-                  const message =
-                    body?.message ||
-                    "Server belum merespons event REGISTER. Periksa backend & URL socket.";
-                  setAuthError(message);
-                  return;
-                }
-                console.log("[auth/register] HTTP fallback success");
-                toast.success(`Akun "${body.username}" berhasil dibuat!`);
-                useAuthStore.getState().markRegisterSuccess(body.username);
-              } catch (fallbackErr) {
-                console.error("[auth/register] HTTP fallback failed", fallbackErr);
-                setAuthError(
-                  "Server belum merespons event REGISTER. Periksa backend & URL socket.",
-                );
-              }
-            })();
+            setAuthError("Server tidak merespons. Pastikan backend aktif, lalu coba lagi.");
             return;
           }
           console.log("[auth/register] ack", ack);
@@ -118,15 +91,6 @@ export function RegisterPage() {
           }
         },
       );
-    registerTimeoutRef.current = window.setTimeout(() => {
-      const { authRequest: latestRequest } = useAuthStore.getState();
-      if (latestRequest === "registering") {
-        console.error("[auth/register] no USER_REGISTERED/AUTH_ERROR after timeout");
-        setAuthError(
-          "Server belum merespons. Pastikan backend aktif, lalu coba lagi.",
-        );
-      }
-    }, 8000);
   };
 
   const handleBack = () => {
