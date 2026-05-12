@@ -13,7 +13,6 @@ interface GameOverModalProps {
   isOpen: boolean;
   isWinner: boolean;
   winnerId: string | null;
-  loserId: string | null;
   myPlayerId: string | null;
   players: { id: string; name: string }[];
   scores: Record<string, number>;
@@ -27,7 +26,6 @@ export function GameOverModal({
   isOpen,
   isWinner,
   winnerId,
-  loserId,
   myPlayerId,
   players,
   scores,
@@ -37,7 +35,6 @@ export function GameOverModal({
   playAgainLabel = "Play Again",
 }: GameOverModalProps) {
   const winnerName = players.find((p) => p.id === winnerId)?.name || "Player";
-  const loserName = players.find((p) => p.id === loserId)?.name || "Player";
 
   return (
     <Dialog open={isOpen}>
@@ -96,7 +93,7 @@ export function GameOverModal({
               >
                 {isWinner
                   ? `${winnerName} wins!`
-                  : `${loserName} wins — timeout`}
+                  : `${winnerName} wins — timeout`}
               </DialogDescription>
             </DialogHeader>
 

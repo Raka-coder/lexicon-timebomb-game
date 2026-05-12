@@ -25,7 +25,6 @@ export function GamePage() {
     scores,
     errorMessage,
     winnerId,
-    loserId,
     resetGameState
   } = useGameStore();
   const [muted, setMuted] = useState(sfx.isMuted());
@@ -259,7 +258,6 @@ export function GamePage() {
           isOpen={gameStatus === "finished"}
           isWinner={isWinner}
           winnerId={winnerId}
-          loserId={loserId}
           myPlayerId={myPlayerId}
           players={players}
           scores={scores}
