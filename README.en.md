@@ -189,8 +189,6 @@ cd frontend
 vercel
 ```
 
-[↑ Back to top](#)
-
 ## Contributing
 
 Pull requests are welcome for improvements and fixes.

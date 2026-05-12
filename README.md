@@ -194,7 +194,6 @@ cd frontend
 vercel
 ```
 
-[↑ Kembali ke atas](#)
 
 ## Kontribusi
 
