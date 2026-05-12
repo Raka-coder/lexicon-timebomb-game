@@ -60,20 +60,29 @@ export function GamePage() {
   };
 
   const handleRestartGame = () => {
-    if (!socket || isRestarting) return;
+    if (!socket || !socket.connected || isRestarting) {
+      console.warn("[game/restart] cannot restart: socket not connected or already restarting");
+      return;
+    }
     setIsRestarting(true);
+    console.log("[game/restart] Attempting to restart game...");
     const timeoutId = setTimeout(() => {
       setIsRestarting(false);
-      console.warn("[game/restart] timeout waiting for server response");
-    }, 5000);
+      console.error("[game/restart] TIMEOUT - server did not respond after 15s");
+    }, 15000);
     socket.emit(
       "START_GAME_AGAIN",
       (ack?: { ok: boolean; message?: string }) => {
         clearTimeout(timeoutId);
         setIsRestarting(false);
-        if (ack && !ack.ok) {
-          console.warn("[game/restart] rejected", ack.message);
-          return;
+        if (ack) {
+          if (ack.ok) {
+            console.log("[game/restart] Success! Game will restart.");
+          } else {
+            console.warn("[game/restart] Rejected by server:", ack.message);
+          }
+        } else {
+          console.warn("[game/restart] No ack received from server");
         }
       },
     );
