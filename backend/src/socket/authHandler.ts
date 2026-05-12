@@ -3,7 +3,6 @@ import type { Server } from "socket.io";
 import {
   registerUser,
   loginUser,
-  validateSession,
   attachSessionToSocket,
   detachSocket,
   updateOnlineStatus,
@@ -12,7 +11,7 @@ import {
   isUsernameAvailable,
   getUserIdBySocketId,
 } from "../auth/userManager";
-import { checkRateLimit, sanitizePlayerName } from "../lib/security";
+import { checkRateLimit } from "../lib/security";
 import { z } from "zod";
 import { validatePayload } from "../lib/security";
 
@@ -31,16 +30,32 @@ function broadcastOnlineUsers(io: Server) {
   io.emit("ONLINE_USERS", { users });
 }
 
+type AuthAck = {
+  ok: boolean;
+  code: string;
+  message?: string;
+};
+
 export function setupAuthHandlers(io: Server, socket: Socket): void {
-  socket.on("REGISTER", (data: unknown) => {
+  socket.on(
+    "REGISTER",
+    (data: unknown, ack?: (response: AuthAck) => void) => {
+      console.info("[auth/register] incoming", { socketId: socket.id, data });
     if (!checkRateLimit(socket.id, "REGISTER")) {
+      console.warn("[auth/register] blocked by rate limit", { socketId: socket.id });
       socket.emit("AUTH_ERROR", { message: "Terlalu banyak request. Coba beberapa saat lagi." });
+      ack?.({ ok: false, code: "rate_limited", message: "Terlalu banyak request. Coba beberapa saat lagi." });
       return;
     }
 
     const validation = validatePayload(registerSchema, data);
     if (!validation.valid) {
+      console.warn("[auth/register] payload invalid", {
+        socketId: socket.id,
+        error: validation.error,
+      });
       socket.emit("AUTH_ERROR", { message: validation.error });
+      ack?.({ ok: false, code: "invalid_payload", message: validation.error });
       return;
     }
 
@@ -48,7 +63,13 @@ export function setupAuthHandlers(io: Server, socket: Socket): void {
     const result = registerUser(username, password);
 
     if (!result.success) {
+      console.warn("[auth/register] register failed", {
+        socketId: socket.id,
+        username,
+        error: result.error,
+      });
       socket.emit("AUTH_ERROR", { message: result.error });
+      ack?.({ ok: false, code: "register_failed", message: result.error });
       return;
     }
 
@@ -62,18 +83,28 @@ export function setupAuthHandlers(io: Server, socket: Socket): void {
     });
 
     broadcastOnlineUsers(io);
-    console.log(`User registered: ${username} (${result.userId})`);
-  });
+      console.log(`User registered: ${username} (${result.userId})`);
+      ack?.({ ok: true, code: "registered" });
+    },
+  );
 
-  socket.on("LOGIN", (data: unknown) => {
+  socket.on("LOGIN", (data: unknown, ack?: (response: AuthAck) => void) => {
+    console.info("[auth/login] incoming", { socketId: socket.id, data });
     if (!checkRateLimit(socket.id, "LOGIN")) {
+      console.warn("[auth/login] blocked by rate limit", { socketId: socket.id });
       socket.emit("AUTH_ERROR", { message: "Terlalu banyak request. Coba beberapa saat lagi." });
+      ack?.({ ok: false, code: "rate_limited", message: "Terlalu banyak request. Coba beberapa saat lagi." });
       return;
     }
 
     const validation = validatePayload(loginSchema, data);
     if (!validation.valid) {
+      console.warn("[auth/login] payload invalid", {
+        socketId: socket.id,
+        error: validation.error,
+      });
       socket.emit("AUTH_ERROR", { message: validation.error });
+      ack?.({ ok: false, code: "invalid_payload", message: validation.error });
       return;
     }
 
@@ -81,7 +112,13 @@ export function setupAuthHandlers(io: Server, socket: Socket): void {
     const result = loginUser(username, password);
 
     if (!result.success) {
+      console.warn("[auth/login] login failed", {
+        socketId: socket.id,
+        username,
+        error: result.error,
+      });
       socket.emit("AUTH_ERROR", { message: result.error });
+      ack?.({ ok: false, code: "login_failed", message: result.error });
       return;
     }
 
@@ -96,6 +133,7 @@ export function setupAuthHandlers(io: Server, socket: Socket): void {
 
     broadcastOnlineUsers(io);
     console.log(`User logged in: ${result.username} (${result.userId})`);
+    ack?.({ ok: true, code: "logged_in" });
   });
 
   socket.on("LOGOUT", () => {

@@ -16,6 +16,7 @@ const SERVER_URL = normalizeServerUrl(
 );
 
 let socket: Socket | null = null;
+let socketDebugAttached = false;
 
 export function setSocketAuthToken(token: string | null) {
   if (socket && token) {
@@ -36,6 +37,33 @@ export function getSocket() {
       auth: token ? { token } : {},
     });
   }
+
+  if (socket && !socketDebugAttached) {
+    socketDebugAttached = true;
+    console.info("[socket] init", { serverUrl: SERVER_URL });
+    socket.on("connect", () => {
+      console.info("[socket] connected", { id: socket?.id, connected: socket?.connected });
+    });
+    socket.on("disconnect", (reason) => {
+      console.warn("[socket] disconnected", { reason });
+    });
+    socket.on("connect_error", (error) => {
+      console.error("[socket] connect_error", {
+        message: error.message,
+        name: error.name,
+      });
+    });
+    socket.io.on("reconnect_attempt", (attempt) => {
+      console.warn("[socket] reconnect_attempt", { attempt });
+    });
+    socket.io.on("reconnect_error", (error) => {
+      console.error("[socket] reconnect_error", { message: error.message });
+    });
+    socket.io.on("reconnect_failed", () => {
+      console.error("[socket] reconnect_failed");
+    });
+  }
+
   return socket;
 }
 

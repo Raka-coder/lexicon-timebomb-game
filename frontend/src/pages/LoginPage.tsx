@@ -1,10 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSocket } from "@/hooks/useSocket";
 import { useAuthStore } from "@/stores/authStore";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+
+type AuthAck = {
+  ok: boolean;
+  code: string;
+  message?: string;
+};
 
 export function LoginPage() {
   const { socket, isConnected } = useSocket();
@@ -17,6 +23,7 @@ export function LoginPage() {
     clearAuthError,
   } = useAuthStore();
   const navigate = useNavigate();
+  const loginTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -24,14 +31,58 @@ export function LoginPage() {
     }
   }, [isAuthenticated, navigate]);
 
+  useEffect(() => {
+    if (authRequest !== "logging_in" && loginTimeoutRef.current) {
+      window.clearTimeout(loginTimeoutRef.current);
+      loginTimeoutRef.current = null;
+    }
+  }, [authRequest]);
+
+  useEffect(() => {
+    return () => {
+      if (loginTimeoutRef.current) {
+        window.clearTimeout(loginTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleLogin = (username: string, password: string) => {
     clearAuthError();
+    console.info("[auth/login] submit", {
+      username,
+      socketConnected: isConnected,
+      socketId: socket.id,
+    });
     if (!isConnected) {
+      console.error("[auth/login] blocked: socket disconnected");
       setAuthError("Koneksi ke server terputus. Coba lagi.");
       return;
     }
     startLogin();
-    socket.emit("LOGIN", { username, password });
+    socket
+      .timeout(8000)
+      .emit("LOGIN", { username, password }, (err: Error | null, ack?: AuthAck) => {
+        if (err) {
+          console.error("[auth/login] ack timeout", { message: err.message });
+          setAuthError(
+            "Server belum merespons event LOGIN. Periksa backend & URL socket.",
+          );
+          return;
+        }
+        console.info("[auth/login] ack", ack);
+        if (ack && !ack.ok) {
+          setAuthError(ack.message || "Login gagal.");
+        }
+      });
+    loginTimeoutRef.current = window.setTimeout(() => {
+      const { authRequest: latestRequest } = useAuthStore.getState();
+      if (latestRequest === "logging_in") {
+        console.error("[auth/login] no USER_LOGGED_IN/AUTH_ERROR after timeout");
+        setAuthError(
+          "Server belum merespons. Pastikan backend aktif, lalu coba lagi.",
+        );
+      }
+    }, 8000);
   };
 
   const handleBack = () => {

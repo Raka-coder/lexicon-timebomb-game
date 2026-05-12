@@ -1,10 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSocket } from "@/hooks/useSocket";
 import { useAuthStore } from "@/stores/authStore";
 import { RegisterForm } from "@/components/auth/RegisterForm";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+
+type AuthAck = {
+  ok: boolean;
+  code: string;
+  message?: string;
+};
 
 export function RegisterPage() {
   const { socket, isConnected } = useSocket();
@@ -19,6 +25,7 @@ export function RegisterPage() {
     consumeRegisterSuccess,
   } = useAuthStore();
   const navigate = useNavigate();
+  const registerTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -33,14 +40,62 @@ export function RegisterPage() {
     }
   }, [justRegisteredUsername, consumeRegisterSuccess, navigate]);
 
+  useEffect(() => {
+    if (authRequest !== "registering" && registerTimeoutRef.current) {
+      window.clearTimeout(registerTimeoutRef.current);
+      registerTimeoutRef.current = null;
+    }
+  }, [authRequest]);
+
+  useEffect(() => {
+    return () => {
+      if (registerTimeoutRef.current) {
+        window.clearTimeout(registerTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleRegister = (username: string, password: string) => {
     clearAuthError();
+    console.info("[auth/register] submit", {
+      username,
+      socketConnected: isConnected,
+      socketId: socket.id,
+    });
     if (!isConnected) {
+      console.error("[auth/register] blocked: socket disconnected");
       setAuthError("Koneksi ke server terputus. Coba lagi.");
       return;
     }
     startRegister();
-    socket.emit("REGISTER", { username, password });
+    socket
+      .timeout(8000)
+      .emit(
+        "REGISTER",
+        { username, password },
+        (err: Error | null, ack?: AuthAck) => {
+          if (err) {
+            console.error("[auth/register] ack timeout", { message: err.message });
+            setAuthError(
+              "Server belum merespons event REGISTER. Periksa backend & URL socket.",
+            );
+            return;
+          }
+          console.info("[auth/register] ack", ack);
+          if (ack && !ack.ok) {
+            setAuthError(ack.message || "Registrasi gagal.");
+          }
+        },
+      );
+    registerTimeoutRef.current = window.setTimeout(() => {
+      const { authRequest: latestRequest } = useAuthStore.getState();
+      if (latestRequest === "registering") {
+        console.error("[auth/register] no USER_REGISTERED/AUTH_ERROR after timeout");
+        setAuthError(
+          "Server belum merespons. Pastikan backend aktif, lalu coba lagi.",
+        );
+      }
+    }, 8000);
   };
 
   const handleBack = () => {

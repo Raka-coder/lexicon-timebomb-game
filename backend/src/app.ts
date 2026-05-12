@@ -21,8 +21,8 @@ export function createApp(): Hono {
 
     if (origin) {
       const isAllowed =
-        CONFIG.CORS_ORIGINS.includes("*") ||
-        CONFIG.CORS_ORIGINS.includes(origin);
+        CONFIG.ALLOWED_ORIGINS.includes("*") ||
+        CONFIG.ALLOWED_ORIGINS.includes(origin);
 
       if (isAllowed) {
         c.res.headers.set("Access-Control-Allow-Origin", origin);
