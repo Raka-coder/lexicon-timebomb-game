@@ -14,7 +14,6 @@ import {
   LogOut,
   Zap,
   Award,
-  Keyboard,
 } from "lucide-react";
 import { OnlineUsersPanel } from "@/components/room/OnlineUsersPanel";
 
@@ -29,7 +28,9 @@ export function PlayPage() {
   const mode = searchParams.get("mode") as "create" | "join" || "create";
 
   const [joining, setJoining] = useState(false);
-  const [playMode, setPlayMode] = useState<PlayMode>("choose");
+  const [playMode, setPlayMode] = useState<PlayMode>(() =>
+    isAuthenticated ? "account" : "choose",
+  );
   const [playerMode, setPlayerMode] = useState<"host" | "player">(
     mode === "join" ? "player" : "host",
   );
@@ -40,12 +41,6 @@ export function PlayPage() {
       setSocketAuthToken(token);
     }
   }, [token]);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      setPlayMode("account");
-    }
-  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!isConnected) return;
