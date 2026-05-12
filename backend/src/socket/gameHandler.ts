@@ -269,6 +269,157 @@ export function setupGameHandlers(
     );
   });
 
+  socket.on("START_GAME_AGAIN", () => {
+    const socketId = socket.id;
+    console.log(`START_GAME_AGAIN request from ${socketId}`);
+
+    const room = getRoomBySocketId(socketId);
+    if (!room) return;
+
+    if (room.status !== "finished") {
+      console.log("START_GAME_AGAIN ignored: room not finished");
+      return;
+    }
+
+    const playerCount = room.players.size;
+    if (playerCount < 2) {
+      socket.emit("ROOM_ERROR", { message: "Minimal 2 pemain untuk mulai" });
+      return;
+    }
+
+    const player = room.players.get(socketId);
+    if (!player?.isHost) {
+      socket.emit("ROOM_ERROR", { message: "Hanya host yang bisa mulai game" });
+      return;
+    }
+
+    const playersArray = Array.from(room.players.values());
+    const playerIds = playersArray.map((p) => p.id);
+
+    const lastLoserId = room.gameState?.currentPlayerId ?? null;
+    let firstPlayerId = playerIds[0];
+    if (lastLoserId) {
+      const loserIndex = playerIds.indexOf(lastLoserId);
+      firstPlayerId =
+        playerIds[(loserIndex + 1) % playerIds.length] ?? playerIds[0];
+    } else {
+      const hostPlayerId = room.players.get(room.hostSocketId)?.id ?? null;
+      const hostFirst = getHostFirstPlayerId(playerIds, hostPlayerId);
+      if (hostFirst) firstPlayerId = hostFirst;
+    }
+
+    if (!firstPlayerId) {
+      console.log("START_GAME_AGAIN failed: no first player found");
+      return;
+    }
+
+    const startWord = getRandomStartWord() || CONFIG.START_WORD;
+    const gameState = initGameState(playerIds, startWord, firstPlayerId);
+
+    room.gameState = gameState;
+    room.status = "playing";
+
+    const players: PlayerInfo[] = playersArray.map((p) => ({
+      id: p.id,
+      name: p.name,
+      isHost: p.isHost,
+    }));
+
+    io.to(room.code).emit("GAME_RESTARTED", {
+      players,
+      currentWord: gameState.currentWord ?? "",
+      requiredLetter: gameState.requiredLetter ?? "",
+      currentPlayerId: firstPlayerId,
+      scores: {},
+    });
+
+    const turnStartPayload: TurnStartPayload = {
+      currentPlayerId: firstPlayerId,
+      currentWord: gameState.currentWord ?? "",
+      requiredLetter: gameState.requiredLetter ?? "",
+      scores: {},
+    };
+    io.to(room.code).emit("TURN_START", turnStartPayload);
+
+    for (const [sockId] of room.players) {
+      updateOnlineStatus(sockId, "playing", room.code);
+    }
+    broadcastOnlineUsers(io);
+
+    console.log(
+      `Game restarted in room ${room.code}, first player: ${firstPlayerId}`,
+    );
+
+    timerManager.stopTurn(room.code);
+    timerManager.startTurn(room.code, firstPlayerId, () => {
+      room.status = "finished";
+      const loserId = gameState.currentPlayerId ?? "";
+      const winnerId = playerIds.find((id) => id !== loserId) ?? "";
+
+      const gameOverPayload: GameOverPayload = {
+        winnerId,
+        loserId,
+        reason: "timeout",
+        scores: gameState.scores,
+        wordHistory: gameState.wordHistory,
+        roomStatus: "playing",
+      };
+      timerManager.stopTurn(room.code);
+      io.to(room.code).emit("GAME_OVER", gameOverPayload);
+    });
+  });
+
+  socket.on("LEAVE_GAME", () => {
+    const socketId = socket.id;
+    console.log(`LEAVE_GAME request from ${socketId}`);
+
+    const room = getRoomBySocketId(socketId);
+    if (!room) return;
+
+    const player = room.players.get(socketId);
+    const isHost = player?.isHost ?? false;
+    const wasInGame = room.status === "playing" || room.status === "finished";
+
+    if (wasInGame) {
+      room.gameState = undefined;
+      timerManager.stopTurn(room.code);
+    }
+
+    room.players.delete(socketId);
+
+    const remainingPlayers = Array.from(room.players.values());
+    if (remainingPlayers.length === 0) {
+      room.status = "waiting";
+      room.code = "";
+      room.players.clear();
+    } else if (isHost && remainingPlayers.length > 0) {
+      const newHost = remainingPlayers[0];
+      if (newHost) {
+        newHost.isHost = true;
+        room.hostSocketId = newHost.socketId;
+      }
+    }
+
+    const players: PlayerInfo[] = remainingPlayers.map((p) => ({
+      id: p.id,
+      name: p.name,
+      isHost: p.isHost,
+    }));
+
+    if (remainingPlayers.length > 0) {
+      io.to(room.code).emit("PLAYER_LEFT", {
+        players,
+        message: `${player?.name ?? "Pemain"} meninggalkan ruangan`,
+      });
+    }
+
+    updateOnlineStatus(socketId, "idle");
+    broadcastOnlineUsers(io);
+    socket.emit("LEFT_GAME", { success: true });
+
+    console.log(`Player ${socketId} left room ${room.code}`);
+  });
+
   socket.on("RESTART_GAME", () => {
     if (!checkRateLimit(socket.id, "RESTART_GAME")) {
       return;

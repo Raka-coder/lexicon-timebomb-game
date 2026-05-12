@@ -11,7 +11,7 @@ import { OnlineUsersPanel } from "@/components/room/OnlineUsersPanel";
 
 export function PlayPage() {
   const { socket, isConnected } = useSocket();
-  const { roomCode, gameStatus, players } = useGameStore();
+  const { roomCode, gameStatus, players, reset } = useGameStore();
   const { isAuthenticated, username, token, clearAuth } = useAuthStore();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -69,6 +69,10 @@ export function PlayPage() {
   };
 
   const handleBack = () => {
+    if (roomCode) {
+      socket?.emit("LEAVE_GAME");
+      reset();
+    }
     navigate("/");
   };
 

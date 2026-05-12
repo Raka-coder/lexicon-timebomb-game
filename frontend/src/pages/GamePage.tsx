@@ -45,18 +45,27 @@ export function GamePage() {
     }
   }, [roomCode, gameStatus, navigate]);
 
+  useEffect(() => {
+    if (!socket) return;
+    const handleReset = () => {
+      resetGameState();
+      navigate("/lobby");
+    };
+    socket.on("ROOM_RESET", handleReset);
+    return () => { socket?.off("ROOM_RESET", handleReset); };
+  }, [socket, resetGameState, navigate]);
+
   const handleSubmitWord = (word: string) => {
     socket?.emit("SUBMIT_WORD", { word });
   };
 
   const handleRestartGame = () => {
-    socket?.emit("RESTART_GAME");
+    socket?.emit("START_GAME_AGAIN");
   };
 
   const handleExitGame = () => {
-    socket?.emit("EXIT_GAME");
+    socket?.emit("LEAVE_GAME");
     resetGameState();
-    navigate("/lobby");
   };
 
   if (gameStatus !== "playing" && gameStatus !== "finished") {

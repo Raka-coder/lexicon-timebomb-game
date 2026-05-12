@@ -26,7 +26,7 @@ export function LobbyPage() {
   }
 
   const handleLeaveToLanding = () => {
-    socket?.emit("EXIT_GAME");
+    socket?.emit("LEAVE_GAME");
     reset();
     navigate("/");
   };

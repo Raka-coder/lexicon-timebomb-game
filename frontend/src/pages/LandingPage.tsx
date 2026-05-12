@@ -14,7 +14,7 @@ export function LandingPage() {
   const hasResetRef = useRef(false);
 
   useEffect(() => {
-    if (!hasResetRef.current && gameStatus === "finished") {
+    if (!hasResetRef.current && (gameStatus === "finished" || gameStatus === "waiting")) {
       reset();
       hasResetRef.current = true;
     }

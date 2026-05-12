@@ -213,6 +213,21 @@ export function useGameSocket(socket: Socket | null) {
       }
     });
 
+    socket.on("GAME_RESTARTED", ({ players, currentWord, requiredLetter, currentPlayerId, scores }) => {
+      console.log(">> GAME_RESTARTED:", { currentWord, requiredLetter, currentPlayerId });
+      sfx.playTick();
+      resetGameState();
+      setPlayers(players);
+      setCurrentWord(currentWord);
+      setRequiredLetter(requiredLetter);
+      setCurrentPlayer(currentPlayerId);
+      setScores(scores || {});
+      setGameStatus("playing");
+      setWinnerLoser(null, null);
+      setError(null);
+      toast.info("Game baru dimulai! Giliran pertama...");
+    });
+
     socket.on("ROOM_RESET", ({ status }) => {
       console.log(">> ROOM_RESET:", status);
       if (status === "waiting") {
@@ -220,6 +235,14 @@ export function useGameSocket(socket: Socket | null) {
         setGameStatus("waiting");
         setWinnerLoser(null, null);
         toast.info("Ruangan telah di-reset untuk main lagi");
+      }
+    });
+
+    socket.on("LEFT_GAME", ({ success }) => {
+      if (success) {
+        resetGameState();
+        setGameStatus("idle");
+        toast.info("Kamu telah keluar dari ruangan");
       }
     });
 
@@ -270,7 +293,9 @@ export function useGameSocket(socket: Socket | null) {
       socket.off("WORD_INVALID");
       socket.off("TIMER_SYNC");
       socket.off("GAME_OVER");
+      socket.off("GAME_RESTARTED");
       socket.off("ROOM_RESET");
+      socket.off("LEFT_GAME");
       socket.off("USER_REGISTERED");
       socket.off("USER_LOGGED_IN");
       socket.off("USER_LOGGED_OUT");
