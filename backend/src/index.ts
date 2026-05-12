@@ -3,6 +3,8 @@ import { setupSocketHandlers } from "./socket";
 import { TimerManager } from "./game/timerManager";
 import { CONFIG } from "./lib/constants";
 
+console.log("[BOOT] backend/src/index.ts — MODULAR version with auth — BUILD:", new Date().toISOString());
+
 const server = createHttpServer();
 const io = createSocketIO(server);
 const timerManager = new TimerManager(io);

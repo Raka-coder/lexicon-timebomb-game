@@ -14,6 +14,8 @@ import {
 import roomRoutes from "./src/routes/room";
 import dictionaryRoutes from "./src/routes/dictionary";
 
+console.log("[BOOT] backend/index.ts — OLD MONOLITHIC version WITHOUT auth routes — BUILD:", new Date().toISOString());
+
 const app = new Hono();
 
 app.use("*", async (c, next) => {
