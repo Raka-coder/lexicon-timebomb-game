@@ -7,6 +7,8 @@
   <img src="https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socket.io&logoColor=white" alt="Socket.IO">
   <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite">
   <img src="https://img.shields.io/badge/Hono-FF5C01?style=for-the-badge&logo=hono&logoColor=white" alt="Hono">
+  <img src="https://img.shields.io/badge/Tailwind%20CSS-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind">
+  <img src="https://img.shields.io/badge/React%20Query-FF4154?style=for-the-badge&logo=reactquery&logoColor=fff" alt="React Query">
 </p>
 
 <!-- README-I18N:START -->
@@ -16,6 +18,12 @@
 <!-- README-I18N:END -->
 
 Lexicon Timebomb is a real-time multiplayer word chain game. Two players compete to submit words that start with the last letter of the previous word. If time runs out, you lose!
+
+## Preview
+
+<p align="center">
+  <img src="./frontend/src/assets/preview.png" alt="Game Preview" width="800">
+</p>
 
 ## Key Features
 
@@ -55,16 +63,30 @@ Lexicon Timebomb is a real-time multiplayer word chain game. Two players compete
 git clone <repository-url>
 cd root
 
-# Install dependencies
-cd backend && bun install
-cd ../frontend && npm install
+# Install backend dependencies
+cd backend && bun install   # or: npm install
+cd ../frontend && npm install   # or: bun install
 ```
+
+### Environment Setup
+
+Copy `.env.example` to `.env` in each directory:
+
+```bash
+# Backend
+cp backend/.env.example backend/.env
+
+# Frontend
+cp frontend/.env.example frontend/.env
+```
+
+Adjust variable values in `backend/.env` and `frontend/.env` if needed.
 
 ### Run Backend
 
 ```bash
 cd backend
-bun run index.ts
+bun run index.ts / bun run dev
 ```
 
 Backend runs at `http://localhost:3001`
@@ -73,7 +95,7 @@ Backend runs at `http://localhost:3001`
 
 ```bash
 cd frontend
-npm run dev
+npm run dev / bun run dev
 ```
 
 Frontend runs at `http://localhost:5173`
@@ -167,6 +189,8 @@ cd frontend
 vercel
 ```
 
+[↑ Back to top](#)
+
 ## Contributing
 
 Pull requests are welcome for improvements and fixes.
@@ -175,8 +199,3 @@ Pull requests are welcome for improvements and fixes.
 
 This project was created for UAS Web Programming assignment.
 
----
-
-<p align="center">
-  Made with ❤️
-</p>

@@ -7,7 +7,14 @@
   <img src="https://img.shields.io/badge/Socket.io-010101?style=for-the-badge&logo=socket.io&logoColor=white" alt="Socket.IO">
   <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite">
   <img src="https://img.shields.io/badge/Hono-FF5C01?style=for-the-badge&logo=hono&logoColor=white" alt="Hono">
-</p>
+  <img src="https://img.shields.io/badge/Tailwind%20CSS-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind">
+  <img src="https://img.shields.io/badge/React%20Query-FF4154?style=for-the-badge&logo=reactquery&logoColor=fff" alt="React Query">
+ </p>
+
+ <p align="center">
+  <img src="https://img.shields.io/badge/Vercel-%23000000.svg?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel">
+  <img src="https://img.shields.io/badge/Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white" alt="Railway">
+ </p>
 
 <!-- README-I18N:START -->
 
@@ -16,6 +23,12 @@
 <!-- README-I18N:END -->
 
 Lexicon Timebomb adalah game sambung kata multiplayer real-time. Dua pemain bersaing untuk menyusun kata yang dimulai dari huruf terakhir kata sebelumnya. Jika waktu habis, pemain kalah!
+
+## Preview
+
+<p align="center">
+  <img src="./frontend/src/assets/preview.png" alt="Preview Game" width="800">
+</p>
 
 ## Fitur Utama
 
@@ -55,16 +68,30 @@ Lexicon Timebomb adalah game sambung kata multiplayer real-time. Dua pemain bers
 git clone <repository-url>
 cd root
 
-# Install dependencies
-cd backend && bun install
-cd ../frontend && npm install
+# Install dependencies backend
+cd backend && bun install   # atau: npm install
+cd ../frontend && npm install   # atau: bun install
 ```
+
+### Setup Environment
+
+Salin `.env.example` ke `.env` di masing-masing direktori:
+
+```bash
+# Backend
+cp backend/.env.example backend/.env
+
+# Frontend
+cp frontend/.env.example frontend/.env
+```
+
+Sesuaikan nilai variabel di `backend/.env` dan `frontend/.env` jika diperlukan.
 
 ### Jalankan Backend
 
 ```bash
 cd backend
-bun run index.ts
+bun run index.ts / bun run dev
 ```
 
 Backend berjalan di `http://localhost:3001`
@@ -73,7 +100,7 @@ Backend berjalan di `http://localhost:3001`
 
 ```bash
 cd frontend
-npm run dev
+npm run dev / bun run dev
 ```
 
 Frontend berjalan di `http://localhost:5173`
@@ -167,6 +194,8 @@ cd frontend
 vercel
 ```
 
+[↑ Kembali ke atas](#)
+
 ## Kontribusi
 
 Pull request diterima untuk perbaikan dan peningkatan.
@@ -175,8 +204,3 @@ Pull request diterima untuk perbaikan dan peningkatan.
 
 Proyek ini dibuat untuk tugas UAS Web Programming.
 
----
-
-<p align="center">
-  Dibuat dengan ❤️
-</p>
