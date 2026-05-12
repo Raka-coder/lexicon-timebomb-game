@@ -2,6 +2,8 @@ import type { Server, Socket } from "socket.io";
 import type { Player, Room, GameState } from "../types";
 import { CONFIG } from "../lib/constants";
 import { sanitizePlayerName } from "../lib/security";
+import { getUserIdBySocketId } from "../auth/userManager";
+import { broadcastOnlineUsers } from "../socket/authHandler";
 
 const rooms = new Map<string, Room>();
 
@@ -17,7 +19,8 @@ function generateRoomCode(): string {
 export function createRoom(
   socket: Socket,
   playerName: string,
-  password?: string
+  password?: string,
+  userId?: string,
 ): Room {
   const roomCode = generateRoomCode();
   const sanitizedName = sanitizePlayerName(playerName) || "Player";
@@ -27,6 +30,7 @@ export function createRoom(
     name: sanitizedName,
     socketId: socket.id,
     isHost: true,
+    userId,
   };
 
   const room: Room = {
@@ -40,7 +44,7 @@ export function createRoom(
   rooms.set(roomCode, room);
   socket.join(roomCode);
 
-  console.log(`Room created: ${roomCode} by ${sanitizedName}${password ? " (protected)" : ""}`);
+  console.log(`Room created: ${roomCode} by ${sanitizedName}${password ? " (protected)" : ""}${userId ? ` [user:${userId.slice(0, 8)}]` : ""}`);
   return room;
 }
 
@@ -48,7 +52,8 @@ export function joinRoom(
   socket: Socket,
   roomCode: string,
   playerName: string,
-  password?: string
+  password?: string,
+  userId?: string,
 ): Room | null {
   const room = rooms.get(roomCode);
   if (!room) {
@@ -77,12 +82,13 @@ export function joinRoom(
     name: sanitizedName,
     socketId: socket.id,
     isHost: false,
+    userId,
   };
 
   room.players.set(socket.id, player);
   socket.join(roomCode);
 
-  console.log(`Player ${sanitizedName} joined room ${roomCode}`);
+  console.log(`Player ${sanitizedName} joined room ${roomCode}${userId ? ` [user:${userId.slice(0, 8)}]` : ""}`);
   return room;
 }
 

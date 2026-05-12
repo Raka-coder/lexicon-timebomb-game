@@ -1,0 +1,150 @@
+import type { Socket } from "socket.io";
+import type { Server } from "socket.io";
+import {
+  registerUser,
+  loginUser,
+  validateSession,
+  attachSessionToSocket,
+  detachSocket,
+  updateOnlineStatus,
+  removeOnlineUser,
+  getOnlineUsers,
+  isUsernameAvailable,
+  getUserIdBySocketId,
+} from "../auth/userManager";
+import { checkRateLimit, sanitizePlayerName } from "../lib/security";
+import { z } from "zod";
+import { validatePayload } from "../lib/security";
+
+const registerSchema = z.object({
+  username: z.string().min(2).max(20).regex(/^[a-zA-Z0-9_]+$/),
+  password: z.string().min(4).max(32),
+});
+
+const loginSchema = z.object({
+  username: z.string().min(2).max(20),
+  password: z.string().min(1),
+});
+
+function broadcastOnlineUsers(io: Server) {
+  const users = getOnlineUsers();
+  io.emit("ONLINE_USERS", { users });
+}
+
+export function setupAuthHandlers(io: Server, socket: Socket): void {
+  socket.on("REGISTER", (data: unknown) => {
+    if (!checkRateLimit(socket.id, "REGISTER")) {
+      socket.emit("AUTH_ERROR", { message: "Terlalu banyak request. Coba beberapa saat lagi." });
+      return;
+    }
+
+    const validation = validatePayload(registerSchema, data);
+    if (!validation.valid) {
+      socket.emit("AUTH_ERROR", { message: validation.error });
+      return;
+    }
+
+    const { username, password } = validation.data;
+    const result = registerUser(username, password);
+
+    if (!result.success) {
+      socket.emit("AUTH_ERROR", { message: result.error });
+      return;
+    }
+
+    attachSessionToSocket(socket.id, result.token);
+    updateOnlineStatus(socket.id, "idle", undefined, username);
+
+    socket.emit("USER_REGISTERED", {
+      token: result.token,
+      userId: result.userId,
+      username: username.slice(0, 20),
+    });
+
+    broadcastOnlineUsers(io);
+    console.log(`User registered: ${username} (${result.userId})`);
+  });
+
+  socket.on("LOGIN", (data: unknown) => {
+    if (!checkRateLimit(socket.id, "LOGIN")) {
+      socket.emit("AUTH_ERROR", { message: "Terlalu banyak request. Coba beberapa saat lagi." });
+      return;
+    }
+
+    const validation = validatePayload(loginSchema, data);
+    if (!validation.valid) {
+      socket.emit("AUTH_ERROR", { message: validation.error });
+      return;
+    }
+
+    const { username, password } = validation.data;
+    const result = loginUser(username, password);
+
+    if (!result.success) {
+      socket.emit("AUTH_ERROR", { message: result.error });
+      return;
+    }
+
+    attachSessionToSocket(socket.id, result.token);
+    updateOnlineStatus(socket.id, "idle", undefined, result.username);
+
+    socket.emit("USER_LOGGED_IN", {
+      token: result.token,
+      userId: result.userId,
+      username: result.username,
+    });
+
+    broadcastOnlineUsers(io);
+    console.log(`User logged in: ${result.username} (${result.userId})`);
+  });
+
+  socket.on("LOGOUT", () => {
+    const userId = getUserIdBySocketId(socket.id);
+    removeOnlineUser(socket.id);
+    detachSocket(socket.id);
+
+    socket.emit("USER_LOGGED_OUT", { success: true });
+    broadcastOnlineUsers(io);
+
+    if (userId) {
+      console.log(`User logged out: ${userId}`);
+    }
+  });
+
+  socket.on("UPDATE_STATUS", (data: unknown) => {
+    const schema = z.object({
+      status: z.enum(["idle", "lobby", "playing"]),
+      roomCode: z.string().max(5).optional(),
+    });
+
+    const validation = validatePayload(schema, data);
+    if (!validation.valid) return;
+
+    const { status, roomCode } = validation.data;
+    updateOnlineStatus(socket.id, status, roomCode);
+    broadcastOnlineUsers(io);
+  });
+
+  socket.on("CHECK_USERNAME", (data: unknown) => {
+    const schema = z.object({ username: z.string().min(2).max(20) });
+    const validation = validatePayload(schema, data);
+    if (!validation.valid) {
+      socket.emit("CHECK_USERNAME_RESULT", { available: false, username: "" });
+      return;
+    }
+
+    const available = isUsernameAvailable(validation.data.username);
+    socket.emit("CHECK_USERNAME_RESULT", {
+      available,
+      username: validation.data.username,
+    });
+  });
+
+  socket.on("disconnect", () => {
+    removeOnlineUser(socket.id);
+    detachSocket(socket.id);
+    broadcastOnlineUsers(io);
+  });
+}
+
+export { broadcastOnlineUsers };

@@ -2,8 +2,8 @@ import { Hono } from "hono";
 import { getWordCount } from "./dictionary/words";
 import roomRoutes from "./routes/room";
 import dictionaryRoutes from "./routes/dictionary";
-
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "*").split(",").map((s) => s.trim());
+import authRoutes from "./routes/auth";
+import { CONFIG } from "./lib/constants";
 
 const securityHeaders = {
   "X-Content-Type-Options": "nosniff",
@@ -21,8 +21,8 @@ export function createApp(): Hono {
 
     if (origin) {
       const isAllowed =
-        ALLOWED_ORIGINS.includes("*") ||
-        ALLOWED_ORIGINS.includes(origin);
+        CONFIG.CORS_ORIGINS.includes("*") ||
+        CONFIG.CORS_ORIGINS.includes(origin);
 
       if (isAllowed) {
         c.res.headers.set("Access-Control-Allow-Origin", origin);
@@ -38,6 +38,10 @@ export function createApp(): Hono {
       c.res.headers.set(key, value);
     }
 
+    if (c.req.method === "OPTIONS") {
+      return c.body(null, 204);
+    }
+
     await next();
   });
 
@@ -51,8 +55,7 @@ export function createApp(): Hono {
 
   app.route("/api/room", roomRoutes);
   app.route("/api/dictionary", dictionaryRoutes);
+  app.route("/api/auth", authRoutes);
 
   return app;
 }
-
-export { ALLOWED_ORIGINS };

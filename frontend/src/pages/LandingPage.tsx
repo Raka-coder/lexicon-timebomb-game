@@ -2,12 +2,14 @@ import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSocket } from "@/hooks/useSocket";
 import { useGameStore } from "@/stores/gameStore";
-import { Shield, Zap, Globe, Sparkles, Play, LogIn } from "lucide-react";
+import { useAuthStore } from "@/stores/authStore";
+import { Shield, Zap, Globe, Sparkles, Play, LogIn, UserPlus, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function LandingPage() {
   const { socket, isConnected } = useSocket();
   const { gameStatus, reset } = useGameStore();
+  const { isAuthenticated, username, clearAuth } = useAuthStore();
   const navigate = useNavigate();
   const hasResetRef = useRef(false);
 
@@ -16,7 +18,7 @@ export function LandingPage() {
       reset();
       hasResetRef.current = true;
     }
-    
+
     if (gameStatus === "idle") {
       hasResetRef.current = false;
     }
@@ -26,18 +28,23 @@ export function LandingPage() {
     navigate(`/play?mode=${mode}`);
   };
 
+  const handleLogout = () => {
+    socket?.emit("LOGOUT");
+    clearAuth();
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 md:p-8 relative overflow-hidden">
       {/* Decorative Stitch-like Assets */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full animate-float" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/10 blur-[120px] rounded-full animate-float" style={{ animationDelay: '-3s' }} />
-      
+
       {/* Grid Pattern Overlay */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
            style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
 
       <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 relative z-10 items-center">
-        
+
         {/* Left Column: Hero Content */}
         <div className="lg:col-span-7 space-y-10 text-center lg:text-left">
           <div className="space-y-6">
@@ -45,12 +52,12 @@ export function LandingPage() {
               <Sparkles className="h-3 md:h-3.5 w-3 md:w-3.5 text-accent fill-accent animate-pulse" />
               <span className="text-[8px] md:text-[10px] font-black text-white/80 uppercase tracking-widest md:tracking-[0.2em]">Next-Gen Word Engine</span>
             </div>
-            
+
             <h1 className="text-4xl sm:text-6xl md:text-8xl xl:text-9xl font-black leading-[0.9] tracking-tighter text-white">
               LEXICON<br />
               <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-accent glow-text-purple">TIMEBOMB</span>
             </h1>
-            
+
             <p className="text-base md:text-xl text-muted-foreground font-medium max-w-xl mx-auto lg:mx-0 leading-relaxed px-4 sm:px-0">
               Experience the <span className="text-serif text-white">highest-stakes</span> multiplayer word chain ever built. Connect, survive, and dominate the neural network.
             </p>
@@ -74,6 +81,23 @@ export function LandingPage() {
 
         {/* Right Column: Interaction Cards */}
         <div className="lg:col-span-5 space-y-8 animate-in fade-in slide-in-from-right-8 duration-1000">
+          {/* Auth Status */}
+          {isAuthenticated && (
+            <div className="flex items-center justify-between glass rounded-2xl p-3 border-primary/20">
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-primary" />
+                <span className="text-xs font-black uppercase tracking-wider">{username}</span>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="text-white/30 hover:text-destructive transition-colors"
+                title="Logout"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+
           <div className="glass-card p-1 rounded-[2.5rem] overflow-hidden group">
             <div className="bg-background/40 backdrop-blur-2xl rounded-[2.4rem] p-2 space-y-4">
                <div className="p-6 md:p-8 space-y-8">
@@ -96,6 +120,28 @@ export function LandingPage() {
                           <span>Join</span>
                         </Button>
                       </div>
+
+                      {/* Auth Links */}
+                      {!isAuthenticated && (
+                        <div className="flex gap-4 pt-2">
+                          <Button
+                            variant="ghost"
+                            onClick={() => navigate("/register")}
+                            className="flex-1 h-12 glass border-white/10 text-white/60 hover:text-primary hover:border-primary/40 rounded-xl transition-all text-xs font-black uppercase tracking-wider"
+                          >
+                            <UserPlus className="h-4 w-4 mr-2" />
+                            Register
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            onClick={() => navigate("/login")}
+                            className="flex-1 h-12 glass border-white/10 text-white/60 hover:text-primary hover:border-primary/40 rounded-xl transition-all text-xs font-black uppercase tracking-wider"
+                          >
+                            <LogIn className="h-4 w-4 mr-2" />
+                            Login
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                </div>

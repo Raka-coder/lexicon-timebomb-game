@@ -3,10 +3,14 @@ import type { Server } from "socket.io";
 import { removePlayer, getRoomBySocketId, broadcastToRoom } from "../game/roomManager";
 import { TimerManager } from "../game/timerManager";
 import type { PlayerInfo, PlayerLeftPayload, GameOverPayload, RoomResetPayload } from "../types";
+import { removeOnlineUser } from "../auth/userManager";
+import { broadcastOnlineUsers } from "./authHandler";
 
 export function setupDisconnectHandler(io: Server, socket: Socket, timerManager: TimerManager): void {
   socket.on("disconnect", () => {
     console.log(`Client disconnected: ${socket.id}`);
+    removeOnlineUser(socket.id);
+    broadcastOnlineUsers(io);
     
     const room = removePlayer(socket.id);
     if (!room) return;

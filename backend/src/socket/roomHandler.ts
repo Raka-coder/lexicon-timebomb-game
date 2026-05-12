@@ -23,6 +23,11 @@ import type {
   PlayerJoinedPayload,
   RoomErrorPayload,
 } from "../types";
+import {
+  getUserIdBySocketId,
+  updateOnlineStatus,
+} from "../auth/userManager";
+import { broadcastOnlineUsers } from "./authHandler";
 
 export function setupRoomHandlers(io: Server, socket: Socket): void {
   socket.on("CREATE_ROOM", (data: unknown) => {
@@ -40,7 +45,8 @@ export function setupRoomHandlers(io: Server, socket: Socket): void {
     const { playerName, password } = validation.data;
     console.log(`CREATE_ROOM: ${playerName}${password ? " (with password)" : ""}`);
 
-    const room = createRoom(socket, playerName, password);
+    const linkedUserId = getUserIdBySocketId(socket.id) || undefined;
+    const room = createRoom(socket, playerName, password, linkedUserId);
     const player = room.players.get(socket.id);
 
     const payload: RoomCreatedPayload = {
@@ -50,6 +56,13 @@ export function setupRoomHandlers(io: Server, socket: Socket): void {
       isHost: true,
     };
     socket.emit("ROOM_CREATED", payload);
+
+    if (linkedUserId) {
+      updateOnlineStatus(socket.id, "lobby", room.code);
+    } else {
+      updateOnlineStatus(socket.id, "lobby", room.code, playerName);
+    }
+    broadcastOnlineUsers(io);
 
     console.log(`Room ${room.code} created, host: ${playerName}`);
   });
@@ -69,7 +82,8 @@ export function setupRoomHandlers(io: Server, socket: Socket): void {
     const { roomCode, playerName, password } = validation.data;
     console.log(`JOIN_ROOM: ${playerName} -> ${roomCode}`);
 
-    const room = joinRoom(socket, roomCode.toUpperCase(), playerName, password);
+    const joinUserId = getUserIdBySocketId(socket.id) || undefined;
+    const room = joinRoom(socket, roomCode.toUpperCase(), playerName, password, joinUserId);
 
     if (!room) {
       const errorPayload: RoomErrorPayload = {
@@ -100,6 +114,14 @@ export function setupRoomHandlers(io: Server, socket: Socket): void {
 
     const joinedPayload: PlayerJoinedPayload = { players };
     broadcastToRoom(io, room.code, "PLAYER_JOINED", joinedPayload);
+
+    if (joinUserId) {
+      updateOnlineStatus(socket.id, "lobby", room.code);
+    } else {
+      updateOnlineStatus(socket.id, "lobby", room.code, playerName);
+    }
+    broadcastOnlineUsers(io);
+
     console.log(
       `Player ${playerName} joined room ${room.code}, total players: ${players.length}`,
     );

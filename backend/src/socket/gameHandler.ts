@@ -22,6 +22,8 @@ import type {
   RoomResetPayload,
   RoomErrorPayload,
 } from "../types";
+import { updateOnlineStatus } from "../auth/userManager";
+import { broadcastOnlineUsers } from "./authHandler";
 
 export function setupGameHandlers(
   io: Server,
@@ -114,6 +116,11 @@ export function setupGameHandlers(
       scores: gameState.scores,
     };
     io.to(room.code).emit("TURN_START", turnStartPayload);
+
+    for (const [sockId] of room.players) {
+      updateOnlineStatus(sockId, "playing", room.code);
+    }
+    broadcastOnlineUsers(io);
 
     console.log(
       `Game started in room ${room.code}, first player (host): ${firstPlayerId}`,
@@ -282,6 +289,10 @@ export function setupGameHandlers(
 
     const resetPayload: RoomResetPayload = { status: "waiting" };
     io.to(room.code).emit("ROOM_RESET", resetPayload);
+    for (const [sockId] of room.players) {
+      updateOnlineStatus(sockId, "lobby", room.code);
+    }
+    broadcastOnlineUsers(io);
     console.log(`Room ${room.code} reset by ${socket.id}`);
   });
 
@@ -296,5 +307,7 @@ export function setupGameHandlers(
 
     const resetPayload: RoomResetPayload = { status: "waiting" };
     io.to(room.code).emit("ROOM_RESET", resetPayload);
+    updateOnlineStatus(socket.id, "idle");
+    broadcastOnlineUsers(io);
   });
 }

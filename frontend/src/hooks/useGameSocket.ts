@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Socket } from "socket.io-client";
 import { useGameStore } from "../stores/gameStore";
+import { useAuthStore } from "../stores/authStore";
 import { sfx } from "@/lib/sfx";
 import { toast } from "sonner";
 
@@ -222,6 +223,41 @@ export function useGameSocket(socket: Socket | null) {
       }
     });
 
+    socket.on("USER_REGISTERED", ({ username }) => {
+      console.log(">> USER_REGISTERED:", username);
+      useAuthStore.getState().markRegisterSuccess(username);
+      toast.success(`Akun "${username}" berhasil dibuat!`);
+    });
+
+    socket.on("USER_LOGGED_IN", ({ token, userId, username }) => {
+      console.log(">> USER_LOGGED_IN:", username, userId);
+      useAuthStore.getState().markLoginSuccess(userId, username, token);
+      toast.success(`Selamat datang, ${username}!`);
+    });
+
+    socket.on("USER_LOGGED_OUT", ({ success }) => {
+      console.log(">> USER_LOGGED_OUT:", success);
+      if (success) {
+        useAuthStore.getState().clearAuth();
+        toast.info("Berhasil logout");
+      }
+    });
+
+    socket.on("AUTH_ERROR", ({ message }) => {
+      console.log(">> AUTH_ERROR:", message);
+      useAuthStore.getState().setAuthError(message);
+      toast.error(message);
+    });
+
+    socket.on("ONLINE_USERS", ({ users }) => {
+      console.log(">> ONLINE_USERS:", users.length);
+      useAuthStore.getState().setOnlineUsers(users);
+    });
+
+    socket.on("CHECK_USERNAME_RESULT", ({ available, username }) => {
+      console.log(">> CHECK_USERNAME_RESULT:", username, available);
+    });
+
     return () => {
       socket.off("ROOM_CREATED");
       socket.off("ROOM_JOINED");
@@ -235,6 +271,12 @@ export function useGameSocket(socket: Socket | null) {
       socket.off("TIMER_SYNC");
       socket.off("GAME_OVER");
       socket.off("ROOM_RESET");
+      socket.off("USER_REGISTERED");
+      socket.off("USER_LOGGED_IN");
+      socket.off("USER_LOGGED_OUT");
+      socket.off("AUTH_ERROR");
+      socket.off("ONLINE_USERS");
+      socket.off("CHECK_USERNAME_RESULT");
     };
   }, [
     socket,

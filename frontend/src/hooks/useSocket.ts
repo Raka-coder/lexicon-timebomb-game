@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import { io, Socket } from "socket.io-client";
+import { useAuthStore } from "@/stores/authStore";
 
 export const getDefaultServerUrl = () => {
   if (typeof window === "undefined") return "http://localhost:3001";
@@ -16,8 +17,15 @@ const SERVER_URL = normalizeServerUrl(
 
 let socket: Socket | null = null;
 
+export function setSocketAuthToken(token: string | null) {
+  if (socket && token) {
+    socket.auth = { token };
+  }
+}
+
 export function getSocket() {
   if (!socket) {
+    const { token } = useAuthStore.getState();
     socket = io(SERVER_URL, {
       autoConnect: true,
       reconnection: true,
@@ -25,6 +33,7 @@ export function getSocket() {
       reconnectionDelay: 1000,
       transports: ["websocket", "polling"],
       withCredentials: true,
+      auth: token ? { token } : {},
     });
   }
   return socket;

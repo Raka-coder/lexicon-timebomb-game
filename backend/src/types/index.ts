@@ -3,6 +3,32 @@ export interface Player {
   name: string;
   socketId: string;
   isHost: boolean;
+  userId?: string;
+}
+
+export type PlayerStatus = "idle" | "lobby" | "playing";
+
+export interface OnlineUser {
+  odispatchId: string;
+  username: string;
+  status: PlayerStatus;
+  roomCode?: string;
+  joinedAt: number;
+}
+
+export interface Session {
+  token: string;
+  userId: string;
+  username: string;
+  createdAt: number;
+  expiresAt: number;
+}
+
+export interface User {
+  id: string;
+  username: string;
+  passwordHash: string;
+  createdAt: number;
 }
 
 export interface Room {
@@ -115,4 +141,43 @@ export interface HealthAPIResponse {
 export interface DictionaryCheckResponse {
   valid: boolean;
   source: string;
+}
+
+export interface RegisterPayload {
+  username: string;
+  password: string;
+}
+
+export interface LoginPayload {
+  username: string;
+  password: string;
+}
+
+export interface UserRegisteredPayload {
+  token: string;
+  userId: string;
+  username: string;
+}
+
+export interface UserLoggedInPayload {
+  token: string;
+  userId: string;
+  username: string;
+}
+
+export interface AuthErrorPayload {
+  message: string;
+}
+
+export interface OnlineUsersPayload {
+  users: OnlineUser[];
+}
+
+export interface AuthSuccessPayload {
+  success: boolean;
+}
+
+export interface CheckUsernameResponse {
+  available: boolean;
+  username: string;
 }
