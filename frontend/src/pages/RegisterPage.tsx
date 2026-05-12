@@ -1,10 +1,15 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSocket } from "@/hooks/useSocket";
+import {
+  getDefaultServerUrl,
+  normalizeServerUrl,
+  useSocket,
+} from "@/hooks/useSocket";
 import { useAuthStore } from "@/stores/authStore";
 import { RegisterForm } from "@/components/auth/RegisterForm";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 
 type AuthAck = {
   ok: boolean;
@@ -26,6 +31,9 @@ export function RegisterPage() {
   } = useAuthStore();
   const navigate = useNavigate();
   const registerTimeoutRef = useRef<number | null>(null);
+  const apiBaseUrl = normalizeServerUrl(
+    import.meta.env.VITE_API_URL || import.meta.env.VITE_WS_URL || getDefaultServerUrl(),
+  );
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -76,9 +84,32 @@ export function RegisterPage() {
         (err: Error | null, ack?: AuthAck) => {
           if (err) {
             console.error("[auth/register] ack timeout", { message: err.message });
-            setAuthError(
-              "Server belum merespons event REGISTER. Periksa backend & URL socket.",
-            );
+            void (async () => {
+              try {
+                console.warn("[auth/register] trying HTTP fallback /api/auth/register");
+                const res = await fetch(`${apiBaseUrl}/api/auth/register`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ username, password }),
+                });
+                const body = await res.json();
+                if (!res.ok || !body?.ok) {
+                  const message =
+                    body?.message ||
+                    "Server belum merespons event REGISTER. Periksa backend & URL socket.";
+                  setAuthError(message);
+                  return;
+                }
+                console.log("[auth/register] HTTP fallback success");
+                toast.success(`Akun "${body.username}" berhasil dibuat!`);
+                useAuthStore.getState().markRegisterSuccess(body.username);
+              } catch (fallbackErr) {
+                console.error("[auth/register] HTTP fallback failed", fallbackErr);
+                setAuthError(
+                  "Server belum merespons event REGISTER. Periksa backend & URL socket.",
+                );
+              }
+            })();
             return;
           }
           console.log("[auth/register] ack", ack);

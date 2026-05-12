@@ -1,6 +1,10 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSocket } from "@/hooks/useSocket";
+import {
+  getDefaultServerUrl,
+  normalizeServerUrl,
+  useSocket,
+} from "@/hooks/useSocket";
 import { useAuthStore } from "@/stores/authStore";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { Button } from "@/components/ui/button";
@@ -24,6 +28,9 @@ export function LoginPage() {
   } = useAuthStore();
   const navigate = useNavigate();
   const loginTimeoutRef = useRef<number | null>(null);
+  const apiBaseUrl = normalizeServerUrl(
+    import.meta.env.VITE_API_URL || import.meta.env.VITE_WS_URL || getDefaultServerUrl(),
+  );
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -64,9 +71,35 @@ export function LoginPage() {
       .emit("LOGIN", { username, password }, (err: Error | null, ack?: AuthAck) => {
         if (err) {
           console.error("[auth/login] ack timeout", { message: err.message });
-          setAuthError(
-            "Server belum merespons event LOGIN. Periksa backend & URL socket.",
-          );
+          void (async () => {
+            try {
+              console.warn("[auth/login] trying HTTP fallback /api/auth/login");
+              const res = await fetch(`${apiBaseUrl}/api/auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password }),
+              });
+              const body = await res.json();
+              if (!res.ok || !body?.ok) {
+                const message =
+                  body?.message ||
+                  "Server belum merespons event LOGIN. Periksa backend & URL socket.";
+                setAuthError(message);
+                return;
+              }
+              console.log("[auth/login] HTTP fallback success");
+              useAuthStore.getState().markLoginSuccess(
+                body.userId,
+                body.username,
+                body.token,
+              );
+            } catch (fallbackErr) {
+              console.error("[auth/login] HTTP fallback failed", fallbackErr);
+              setAuthError(
+                "Server belum merespons event LOGIN. Periksa backend & URL socket.",
+              );
+            }
+          })();
           return;
         }
         console.log("[auth/login] ack", ack);
