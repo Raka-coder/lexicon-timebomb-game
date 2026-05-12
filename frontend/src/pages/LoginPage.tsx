@@ -48,7 +48,7 @@ export function LoginPage() {
 
   const handleLogin = (username: string, password: string) => {
     clearAuthError();
-    console.info("[auth/login] submit", {
+    console.log("[auth/login] submit", {
       username,
       socketConnected: isConnected,
       socketId: socket.id,
@@ -69,7 +69,7 @@ export function LoginPage() {
           );
           return;
         }
-        console.info("[auth/login] ack", ack);
+        console.log("[auth/login] ack", ack);
         if (ack && !ack.ok) {
           setAuthError(ack.message || "Login gagal.");
         }

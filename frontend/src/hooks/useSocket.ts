@@ -40,9 +40,9 @@ export function getSocket() {
 
   if (socket && !socketDebugAttached) {
     socketDebugAttached = true;
-    console.info("[socket] init", { serverUrl: SERVER_URL });
+    console.log("[socket] init", { serverUrl: SERVER_URL });
     socket.on("connect", () => {
-      console.info("[socket] connected", { id: socket?.id, connected: socket?.connected });
+      console.log("[socket] connected", { id: socket?.id, connected: socket?.connected });
     });
     socket.on("disconnect", (reason) => {
       console.warn("[socket] disconnected", { reason });

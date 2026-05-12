@@ -57,7 +57,7 @@ export function RegisterPage() {
 
   const handleRegister = (username: string, password: string) => {
     clearAuthError();
-    console.info("[auth/register] submit", {
+    console.log("[auth/register] submit", {
       username,
       socketConnected: isConnected,
       socketId: socket.id,
@@ -81,7 +81,7 @@ export function RegisterPage() {
             );
             return;
           }
-          console.info("[auth/register] ack", ack);
+          console.log("[auth/register] ack", ack);
           if (ack && !ack.ok) {
             setAuthError(ack.message || "Registrasi gagal.");
           }

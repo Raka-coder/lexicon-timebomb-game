@@ -36,104 +36,129 @@ type AuthAck = {
   message?: string;
 };
 
+function invokeAck(ack: unknown, response: AuthAck) {
+  if (typeof ack !== "function") return;
+  try {
+    (ack as (payload: AuthAck) => void)(response);
+  } catch (error) {
+    console.error("[auth] failed to send ack", { error });
+  }
+}
+
 export function setupAuthHandlers(io: Server, socket: Socket): void {
   socket.on(
     "REGISTER",
     (data: unknown, ack?: (response: AuthAck) => void) => {
+      try {
       console.info("[auth/register] incoming", { socketId: socket.id, data });
-    if (!checkRateLimit(socket.id, "REGISTER")) {
-      console.warn("[auth/register] blocked by rate limit", { socketId: socket.id });
-      socket.emit("AUTH_ERROR", { message: "Terlalu banyak request. Coba beberapa saat lagi." });
-      ack?.({ ok: false, code: "rate_limited", message: "Terlalu banyak request. Coba beberapa saat lagi." });
-      return;
-    }
+        if (!checkRateLimit(socket.id, "REGISTER")) {
+          console.warn("[auth/register] blocked by rate limit", { socketId: socket.id });
+          const message = "Terlalu banyak request. Coba beberapa saat lagi.";
+          socket.emit("AUTH_ERROR", { message });
+          invokeAck(ack, { ok: false, code: "rate_limited", message });
+          return;
+        }
 
-    const validation = validatePayload(registerSchema, data);
-    if (!validation.valid) {
-      console.warn("[auth/register] payload invalid", {
-        socketId: socket.id,
-        error: validation.error,
-      });
-      socket.emit("AUTH_ERROR", { message: validation.error });
-      ack?.({ ok: false, code: "invalid_payload", message: validation.error });
-      return;
-    }
+        const validation = validatePayload(registerSchema, data);
+        if (!validation.valid) {
+          console.warn("[auth/register] payload invalid", {
+            socketId: socket.id,
+            error: validation.error,
+          });
+          socket.emit("AUTH_ERROR", { message: validation.error });
+          invokeAck(ack, { ok: false, code: "invalid_payload", message: validation.error });
+          return;
+        }
 
-    const { username, password } = validation.data;
-    const result = registerUser(username, password);
+        const { username, password } = validation.data;
+        const result = registerUser(username, password);
 
-    if (!result.success) {
-      console.warn("[auth/register] register failed", {
-        socketId: socket.id,
-        username,
-        error: result.error,
-      });
-      socket.emit("AUTH_ERROR", { message: result.error });
-      ack?.({ ok: false, code: "register_failed", message: result.error });
-      return;
-    }
+        if (!result.success) {
+          console.warn("[auth/register] register failed", {
+            socketId: socket.id,
+            username,
+            error: result.error,
+          });
+          socket.emit("AUTH_ERROR", { message: result.error });
+          invokeAck(ack, { ok: false, code: "register_failed", message: result.error });
+          return;
+        }
 
-    attachSessionToSocket(socket.id, result.token);
-    updateOnlineStatus(socket.id, "idle", undefined, username);
+        attachSessionToSocket(socket.id, result.token);
+        updateOnlineStatus(socket.id, "idle", undefined, username);
 
-    socket.emit("USER_REGISTERED", {
-      token: result.token,
-      userId: result.userId,
-      username: username.slice(0, 20),
-    });
+        socket.emit("USER_REGISTERED", {
+          token: result.token,
+          userId: result.userId,
+          username: username.slice(0, 20),
+        });
 
-    broadcastOnlineUsers(io);
-      console.log(`User registered: ${username} (${result.userId})`);
-      ack?.({ ok: true, code: "registered" });
+        broadcastOnlineUsers(io);
+        console.log(`User registered: ${username} (${result.userId})`);
+        invokeAck(ack, { ok: true, code: "registered" });
+      } catch (error) {
+        console.error("[auth/register] unexpected error", { socketId: socket.id, error });
+        const message = "Terjadi kesalahan server saat register.";
+        socket.emit("AUTH_ERROR", { message });
+        invokeAck(ack, { ok: false, code: "server_error", message });
+      }
     },
   );
 
   socket.on("LOGIN", (data: unknown, ack?: (response: AuthAck) => void) => {
-    console.info("[auth/login] incoming", { socketId: socket.id, data });
-    if (!checkRateLimit(socket.id, "LOGIN")) {
-      console.warn("[auth/login] blocked by rate limit", { socketId: socket.id });
-      socket.emit("AUTH_ERROR", { message: "Terlalu banyak request. Coba beberapa saat lagi." });
-      ack?.({ ok: false, code: "rate_limited", message: "Terlalu banyak request. Coba beberapa saat lagi." });
-      return;
-    }
+    try {
+      console.info("[auth/login] incoming", { socketId: socket.id, data });
+      if (!checkRateLimit(socket.id, "LOGIN")) {
+        console.warn("[auth/login] blocked by rate limit", { socketId: socket.id });
+        const message = "Terlalu banyak request. Coba beberapa saat lagi.";
+        socket.emit("AUTH_ERROR", { message });
+        invokeAck(ack, { ok: false, code: "rate_limited", message });
+        return;
+      }
 
-    const validation = validatePayload(loginSchema, data);
-    if (!validation.valid) {
-      console.warn("[auth/login] payload invalid", {
-        socketId: socket.id,
-        error: validation.error,
+      const validation = validatePayload(loginSchema, data);
+      if (!validation.valid) {
+        console.warn("[auth/login] payload invalid", {
+          socketId: socket.id,
+          error: validation.error,
+        });
+        socket.emit("AUTH_ERROR", { message: validation.error });
+        invokeAck(ack, { ok: false, code: "invalid_payload", message: validation.error });
+        return;
+      }
+
+      const { username, password } = validation.data;
+      const result = loginUser(username, password);
+
+      if (!result.success) {
+        console.warn("[auth/login] login failed", {
+          socketId: socket.id,
+          username,
+          error: result.error,
+        });
+        socket.emit("AUTH_ERROR", { message: result.error });
+        invokeAck(ack, { ok: false, code: "login_failed", message: result.error });
+        return;
+      }
+
+      attachSessionToSocket(socket.id, result.token);
+      updateOnlineStatus(socket.id, "idle", undefined, result.username);
+
+      socket.emit("USER_LOGGED_IN", {
+        token: result.token,
+        userId: result.userId,
+        username: result.username,
       });
-      socket.emit("AUTH_ERROR", { message: validation.error });
-      ack?.({ ok: false, code: "invalid_payload", message: validation.error });
-      return;
+
+      broadcastOnlineUsers(io);
+      console.log(`User logged in: ${result.username} (${result.userId})`);
+      invokeAck(ack, { ok: true, code: "logged_in" });
+    } catch (error) {
+      console.error("[auth/login] unexpected error", { socketId: socket.id, error });
+      const message = "Terjadi kesalahan server saat login.";
+      socket.emit("AUTH_ERROR", { message });
+      invokeAck(ack, { ok: false, code: "server_error", message });
     }
-
-    const { username, password } = validation.data;
-    const result = loginUser(username, password);
-
-    if (!result.success) {
-      console.warn("[auth/login] login failed", {
-        socketId: socket.id,
-        username,
-        error: result.error,
-      });
-      socket.emit("AUTH_ERROR", { message: result.error });
-      ack?.({ ok: false, code: "login_failed", message: result.error });
-      return;
-    }
-
-    attachSessionToSocket(socket.id, result.token);
-    updateOnlineStatus(socket.id, "idle", undefined, result.username);
-
-    socket.emit("USER_LOGGED_IN", {
-      token: result.token,
-      userId: result.userId,
-      username: result.username,
-    });
-
-    broadcastOnlineUsers(io);
-    console.log(`User logged in: ${result.username} (${result.userId})`);
-    ack?.({ ok: true, code: "logged_in" });
   });
 
   socket.on("LOGOUT", () => {
