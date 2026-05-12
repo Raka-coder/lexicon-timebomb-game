@@ -62,25 +62,21 @@ export function GamePage() {
   const handleRestartGame = () => {
     if (!socket || isRestarting) return;
     setIsRestarting(true);
-    socket
-      .timeout(5000)
-      .emit(
-        "START_GAME_AGAIN",
-        (err: Error | null, ack?: { ok: boolean; message?: string }) => {
-          if (err) {
-            console.warn("[game/restart] START_GAME_AGAIN ack timeout, fallback to RESTART_GAME");
-            socket.emit("RESTART_GAME");
-            setIsRestarting(false);
-            return;
-          }
-
-          if (ack && !ack.ok) {
-            console.warn("[game/restart] rejected", ack.message);
-            setIsRestarting(false);
-            return;
-          }
-        },
-      );
+    const timeoutId = setTimeout(() => {
+      setIsRestarting(false);
+      console.warn("[game/restart] timeout waiting for server response");
+    }, 5000);
+    socket.emit(
+      "START_GAME_AGAIN",
+      (ack?: { ok: boolean; message?: string }) => {
+        clearTimeout(timeoutId);
+        setIsRestarting(false);
+        if (ack && !ack.ok) {
+          console.warn("[game/restart] rejected", ack.message);
+          return;
+        }
+      },
+    );
   };
 
   const handleExitGame = () => {
