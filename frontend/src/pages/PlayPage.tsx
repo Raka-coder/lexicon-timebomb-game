@@ -234,14 +234,15 @@ export function PlayPage() {
           {/* STEP 2: Host / Player selection + Form */}
           {(playMode === "quick" || playMode === "account") && (
             <div className="space-y-6 animate-in fade-in duration-500">
-              {/* Mode Change Button */}
-              <button
-                onClick={() => setPlayMode("choose")}
-                className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors"
-              >
-                <ArrowLeft className="h-3 w-3" />
-                Change play mode
-              </button>
+              {playMode !== "quick" && (
+                <button
+                  onClick={() => setPlayMode("choose")}
+                  className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors"
+                >
+                  <ArrowLeft className="h-3 w-3" />
+                  Change play mode
+                </button>
+              )}
 
               <div className="glass-card p-1 rounded-[2.5rem] overflow-hidden">
                 <div className="bg-background/40 backdrop-blur-2xl rounded-[2.4rem] p-8 space-y-6">

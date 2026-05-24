@@ -49,18 +49,18 @@ export function PlayerCard({ playerId, name, isHost }: PlayerCardProps) {
 
   return (
     <div
-      className={`
-        relative p-6 rounded-[2.2rem] border transition-all duration-700 overflow-hidden
+        className={`
+        relative p-4 md:p-5 rounded-[2.2rem] border transition-all duration-700 overflow-hidden
         ${isActive
           ? "glass border-primary/50 shadow-[0_0_50px_rgba(var(--primary),0.15)] scale-[1.03]"
-          : "bg-white/[0.02] border-white/5 opacity-60"
+          : "bg-white/2 border-white/5 opacity-60"
         }
       `}
     >
       {/* Dynamic Background for Active State */}
       {isActive && (
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-primary/10 via-transparent to-accent/5" />
+          <div className="absolute top-0 left-0 w-full h-full bg-linear-to-br from-primary/10 via-transparent to-accent/5" />
           <div className="absolute top-0 left-0 w-full h-full opacity-[0.03]" 
                style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
         </div>
@@ -71,7 +71,7 @@ export function PlayerCard({ playerId, name, isHost }: PlayerCardProps) {
           <div className="relative">
             <div
               className={`
-                w-16 h-16 rounded-[1.2rem] flex items-center justify-center
+                w-12 h-12 md:w-14 md:h-14 rounded-[1.2rem] flex items-center justify-center
                 border-2 transition-all duration-500
                 ${isMe
                   ? "glass border-primary/40 text-primary shadow-[0_0_25px_rgba(var(--primary),0.2)]"
@@ -96,7 +96,7 @@ export function PlayerCard({ playerId, name, isHost }: PlayerCardProps) {
 
           <div className="space-y-1.5">
             <div className="flex items-center gap-3">
-              <span className={`text-xl font-black uppercase tracking-tighter ${isActive ? "text-white glow-text-purple" : "text-white/40"}`}>
+              <span className={`text-base md:text-lg font-black uppercase tracking-tighter ${isActive ? "text-white glow-text-purple" : "text-white/40"}`}>
                 {name}
               </span>
               {isMe && (
@@ -119,9 +119,9 @@ export function PlayerCard({ playerId, name, isHost }: PlayerCardProps) {
           <div className="flex items-baseline gap-2">
             <span
               className={`
-                text-5xl font-black font-mono tabular-nums transition-all duration-500
+                text-3xl font-black font-mono tabular-nums transition-all duration-500
                 ${isActive ? "text-white glow-text-purple" : "text-white/20"}
-                ${scoreChanged ? "text-accent glow-text-cyan scale-125 translate-y-[-4px]" : ""}
+                ${scoreChanged ? "text-accent glow-text-cyan scale-125 -translate-y-1" : ""}
               `}
             >
               {score.toString().padStart(3, '0')}
@@ -137,7 +137,7 @@ export function PlayerCard({ playerId, name, isHost }: PlayerCardProps) {
       {/* Modern Progress Accent for Active Player */}
       {isActive && (
         <div className="absolute bottom-0 left-0 w-full h-1.5 bg-white/5 overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-primary via-accent to-primary animate-slide-in-left bg-[length:200%_100%] duration-[2000ms]" style={{ width: '100%' }} />
+          <div className="h-full bg-linear-to-r from-primary via-accent to-primary animate-slide-in-left bg-size-[200%_100%] duration-[2000]" style={{ width: '100%' }} />
         </div>
       )}
     </div>

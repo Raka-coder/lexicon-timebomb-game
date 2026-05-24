@@ -28,7 +28,7 @@ export function LobbyPage() {
   const handleLeaveToLanding = () => {
     socket?.emit("LEAVE_GAME");
     reset();
-    navigate("/");
+    navigate("/play");
   };
 
   return (
@@ -59,7 +59,7 @@ export function LobbyPage() {
                 onClick={handleLeaveToLanding}
                 className="max-w-md w-full h-12 glass border-white/10 text-white/60 hover:text-white hover:border-primary/40 rounded-2xl transition-all"
               >
-                Kembali ke Landing Page
+                Kembali ke Play Page
               </Button>
             </div>
 

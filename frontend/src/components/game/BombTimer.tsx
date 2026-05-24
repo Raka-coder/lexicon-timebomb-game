@@ -47,7 +47,7 @@ export function BombTimer() {
   const isWarning = timeLeft <= 8 && !isCritical;
 
   return (
-    <div className="relative w-48 h-48 md:w-56 md:h-56 flex items-center justify-center">
+    <div className="relative w-36 h-36 md:w-44 md:h-44 flex items-center justify-center">
       {/* Decorative Stitch-style Background Rings */}
       <div className="absolute inset-0 border border-white/5 rounded-full" />
       <div className="absolute inset-4 border border-white/5 rounded-full" />
@@ -101,7 +101,7 @@ export function BombTimer() {
             <span className="text-[9px] font-black uppercase tracking-[0.4em]">Chronology</span>
           </div>
           <span
-            className={`text-7xl md:text-8xl font-black tracking-tighter leading-none transition-colors duration-300 ${isCritical ? 'text-destructive glow-text-destructive animate-pulse' : isWarning ? 'text-stitch-amber' : 'text-white'}`}
+            className={`text-5xl md:text-6xl font-black tracking-tighter leading-none transition-colors duration-300 ${isCritical ? 'text-destructive glow-text-destructive animate-pulse' : isWarning ? 'text-stitch-amber' : 'text-white'}`}
           >
             {timeLeft}
           </span>

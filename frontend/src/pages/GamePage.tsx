@@ -91,6 +91,7 @@ export function GamePage() {
   const handleExitGame = () => {
     socket?.emit("LEAVE_GAME");
     resetGameState();
+    navigate("/play");
   };
 
   useEffect(() => {
@@ -138,7 +139,7 @@ export function GamePage() {
       <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-accent/5 blur-[160px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
       
       {/* Top Protocol Status Bar */}
-      <div className="w-full max-w-6xl flex items-center justify-between mb-4 md:mb-12 relative z-30 px-4 md:px-6 py-3 md:py-4 glass rounded-3xl md:rounded-4xl border-white/10 shadow-2xl">
+      <div className="w-full max-w-6xl flex items-center justify-between mb-4 md:mb-6 relative z-30 px-4 md:px-6 py-3 md:py-4 glass rounded-3xl md:rounded-4xl border-white/10 shadow-2xl">
         <div className="flex items-center gap-4 md:gap-10">
           <div className="flex flex-col">
             <div className="flex items-center gap-2 mb-0.5 opacity-40">
@@ -173,7 +174,7 @@ export function GamePage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate("/")}
+            onClick={handleExitGame}
             className="flex items-center gap-2 md:gap-3 h-9 md:h-11 px-3 md:px-5 glass border-destructive/20 text-destructive hover:bg-destructive/10 rounded-xl md:rounded-2xl transition-all shadow-lg"
           >
             <ShieldAlert className="h-3 w-3 md:h-4 md:w-4" />
@@ -182,7 +183,7 @@ export function GamePage() {
         </div>
       </div>
 
-      <div className="max-w-5xl w-full space-y-6 md:space-y-12 relative z-20 overflow-y-auto no-scrollbar pb-10">
+      <div className="max-w-5xl w-full space-y-6 md:space-y-8 relative z-20 overflow-y-auto no-scrollbar pb-10">
         
         {/* Central HUD: Active Word Node */}
         <div className="text-center animate-in zoom-in-95 duration-1000">
@@ -195,7 +196,7 @@ export function GamePage() {
                   <span className="text-[8px] md:text-[10px] font-black text-white uppercase tracking-[0.4em] md:tracking-[0.6em] italic">Pattern</span>
                 </div>
                 
-                <h2 className="text-4xl md:text-8xl xl:text-9xl font-black text-white glow-text-cyan mb-4 md:mb-8 tracking-tighter uppercase transition-all duration-700 hover:scale-105 break-all">
+                  <h2 className="text-3xl md:text-6xl xl:text-7xl font-black text-white glow-text-cyan mb-4 md:mb-6 tracking-tighter uppercase transition-all duration-700 hover:scale-105 break-all">
                   {currentWord || "..."}
                 </h2>
 
@@ -206,7 +207,7 @@ export function GamePage() {
                       <span className="text-[7px] md:text-[10px] font-black text-primary uppercase tracking-widest md:tracking-[0.2em]">Character</span>
                     </div>
                     <div className="h-6 md:h-8 w-px bg-white/10" />
-                    <span className="text-3xl md:text-5xl font-black text-white glow-text-purple animate-pulse group-hover/letter:scale-110 transition-transform">
+                    <span className="text-2xl md:text-4xl font-black text-white glow-text-purple animate-pulse group-hover/letter:scale-110 transition-transform">
                       {requiredLetter?.toUpperCase() || "?"}
                     </span>
                   </div>
@@ -217,7 +218,7 @@ export function GamePage() {
         </div>
 
         {/* Player Visualization Matrix */}
-        <div className="grid grid-cols-2 md:grid-cols-2 gap-2 md:gap-6 animate-in slide-in-from-bottom-8 duration-1000 delay-200">
+        <div className="grid grid-cols-2 md:grid-cols-2 gap-2 md:gap-4 animate-in slide-in-from-bottom-8 duration-1000 delay-200">
           {players.map((player) => (
             <PlayerCard
               key={player.id}
@@ -229,7 +230,7 @@ export function GamePage() {
         </div>
 
         {/* Tactical Control HUD */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-10 items-start animate-in slide-in-from-bottom-12 duration-1000 delay-500">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 items-start animate-in slide-in-from-bottom-12 duration-1000 delay-500">
           
           {/* Column: Input & Timer */}
           <div className="lg:col-span-7 space-y-6 md:space-y-12 flex flex-col items-center lg:items-start">
@@ -266,6 +267,7 @@ export function GamePage() {
           myPlayerId={myPlayerId}
           players={players}
           scores={scores}
+          message={errorMessage}
           onPlayAgain={handleRestartGame}
           onLeave={handleExitGame}
           playAgainDisabled={isRestarting}
@@ -273,7 +275,7 @@ export function GamePage() {
         />
       </div>
 
-      <footer className="mt-10 md:mt-20 text-[7px] md:text-[9px] font-black text-white/10 uppercase tracking-[0.4em] md:tracking-[0.8em] relative z-10 text-center pb-8">
+      <footer className="mt-6 md:mt-12 text-[7px] md:text-[9px] font-black text-white/10 uppercase tracking-[0.4em] md:tracking-[0.8em] relative z-10 text-center pb-8">
         Neural Mesh Link Secure — Data Integrity Verified — 2026
       </footer>
     </div>

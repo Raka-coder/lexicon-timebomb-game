@@ -94,7 +94,7 @@ export function RegisterPage() {
   };
 
   const handleBack = () => {
-    navigate("/");
+    navigate("/play");
   };
 
   return (

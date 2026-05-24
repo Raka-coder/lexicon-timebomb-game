@@ -132,7 +132,7 @@ export function WordInput({ onSubmit }: Props) {
                                 if (errorMessage) setError(null);
                               }}
                               className={`
-                                glass h-16 md:h-20 text-xl font-black tracking-widest uppercase rounded-[1.4rem] px-8
+                                glass h-12 md:h-14 text-base font-black tracking-widest uppercase rounded-[1.4rem] px-6
                                 placeholder:text-white/10 placeholder:font-bold placeholder:text-[11px] placeholder:tracking-[0.4em]
                                 transition-all duration-500
                                 ${errorMessage ? "border-destructive/50 shadow-[0_0_25px_rgba(var(--color-destructive),0.2)] animate-shake" : ""}
@@ -157,7 +157,7 @@ export function WordInput({ onSubmit }: Props) {
                       type="submit"
                       disabled={!isMyTurn || isValidating || !hasWord}
                       className={`
-                        h-16 md:h-20 px-8 md:px-12 rounded-[1.4rem] transition-all duration-500 active:scale-95
+                        h-12 md:h-14 px-6 md:px-8 rounded-[1.4rem] transition-all duration-500 active:scale-95
                         ${isMyTurn && hasWord
                           ? "btn-stitch border-primary/20 text-white"
                           : "bg-white/5 border-white/5 text-white/20 cursor-not-allowed"

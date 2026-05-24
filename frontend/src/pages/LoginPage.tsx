@@ -70,7 +70,7 @@ export function LoginPage() {
   };
 
   const handleBack = () => {
-    navigate("/");
+    navigate("/play");
   };
 
   return (

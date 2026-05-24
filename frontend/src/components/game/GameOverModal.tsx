@@ -16,6 +16,7 @@ interface GameOverModalProps {
   myPlayerId: string | null;
   players: { id: string; name: string }[];
   scores: Record<string, number>;
+  message?: string | null;
   onPlayAgain: () => void;
   onLeave: () => void;
   playAgainDisabled?: boolean;
@@ -29,12 +30,14 @@ export function GameOverModal({
   myPlayerId,
   players,
   scores,
+  message,
   onPlayAgain,
   onLeave,
   playAgainDisabled = false,
   playAgainLabel = "Play Again",
 }: GameOverModalProps) {
   const winnerName = players.find((p) => p.id === winnerId)?.name || "Player";
+  const isAborted = message?.includes("meninggalkan");
 
   return (
     <Dialog open={isOpen}>
@@ -84,6 +87,11 @@ export function GameOverModal({
                 )}
               </DialogTitle>
 
+              {message && (
+                <div className="px-4 py-2 text-xs font-bold text-destructive uppercase tracking-[0.2em] text-center">
+                  {message}
+                </div>
+              )}
               <DialogDescription
                 className={`inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-[0.2em] glass border text-center mx-auto ${
                   isWinner
@@ -91,9 +99,11 @@ export function GameOverModal({
                     : "text-destructive border-destructive/20"
                 }`}
               >
-                {isWinner
-                  ? `${winnerName} wins!`
-                  : `${winnerName} wins — timeout`}
+                {isAborted
+                  ? "Opponent disconnected"
+                  : isWinner
+                    ? `${winnerName} wins!`
+                    : `${winnerName} wins — timeout`}
               </DialogDescription>
             </DialogHeader>
 

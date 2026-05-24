@@ -16,7 +16,7 @@ export function WordHistory() {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-6 glass rounded-[2.5rem] border-white/5">
         <div className="relative">
-          <Activity className="h-16 w-16 text-white/5" />
+          <Activity className="h-10 w-10 text-white/5" />
           <div className="absolute inset-0 bg-primary/10 blur-2xl rounded-full animate-pulse" />
         </div>
         <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.6em] mt-6">
@@ -47,7 +47,7 @@ export function WordHistory() {
 
       <div 
         ref={scrollRef}
-        className="space-y-4 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar flex flex-col-reverse"
+        className="space-y-4 max-h-100 overflow-y-auto pr-4 custom-scrollbar flex flex-col-reverse"
       >
         {wordHistory.map((word, index) => {
           const isLatest = index === wordHistory.length - 1;
@@ -62,7 +62,7 @@ export function WordHistory() {
                 border transition-all duration-500
                 ${isLatest
                   ? "glass border-primary/40 animate-in slide-in-from-right-8 shadow-[0_0_40px_rgba(var(--primary),0.1)]"
-                  : "bg-white/[0.02] border-white/5 hover:bg-white/[0.05] grayscale hover:grayscale-0 opacity-40 hover:opacity-100"
+                  : "bg-white/2 border-white/5 hover:bg-white/5 grayscale hover:grayscale-0 opacity-40 hover:opacity-100"
                 }
               `}
             >
@@ -72,7 +72,7 @@ export function WordHistory() {
                 </div>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-3">
-                    <span className={`text-2xl font-black tracking-tighter uppercase ${isLatest ? "text-white glow-text-purple" : "text-white/40"}`}>
+                    <span className={`text-base md:text-lg font-black tracking-tighter uppercase ${isLatest ? "text-white glow-text-purple" : "text-white/40"}`}>
                       {word}
                     </span>
                     {isLatest && (
@@ -112,7 +112,7 @@ export function WordHistory() {
           </div>
         </div>
         <div className="flex items-center gap-3 glass px-6 py-2 rounded-2xl border-primary/30 group cursor-default">
-          <span className="text-4xl font-black text-primary glow-text-purple animate-pulse group-hover:scale-110 transition-transform">
+          <span className="text-2xl font-black text-primary glow-text-purple animate-pulse group-hover:scale-110 transition-transform">
             {wordHistory[wordHistory.length-1]?.[wordHistory[wordHistory.length-1].length-1].toUpperCase()}
           </span>
           <ArrowRight className="h-5 w-5 text-primary opacity-50" />

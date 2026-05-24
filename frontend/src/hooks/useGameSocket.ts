@@ -76,14 +76,25 @@ export function useGameSocket(socket: Socket | null) {
     });
 
     socket.on("PLAYER_LEFT", ({ players, message }) => {
-      console.log("PLAYER_LEFT:", message);
+      const currentStatus = useGameStore.getState().gameStatus;
+      const currentMyPlayerId = useGameStore.getState().myPlayerId;
+      console.log("PLAYER_LEFT:", message, "status:", currentStatus);
+
+      if (currentStatus === "playing") {
+        setGameStatus("finished");
+        setWinnerLoser(currentMyPlayerId ?? "", null);
+        setError("Pemain lawan telah meninggalkan permainan");
+        toast.error("Pemain lawan telah meninggalkan permainan", { duration: 5000 });
+      } else {
+        toast.error("Pemain telah keluar dari ruangan");
+        if (message) setError(message);
+      }
+
       if (players && Array.isArray(players)) {
         setPlayers(players);
       } else {
         setPlayers([]);
       }
-      toast.error("Pemain telah keluar dari ruangan");
-      if (message) setError(message);
     });
 
     socket.on("ROOM_ERROR", ({ message }) => {
