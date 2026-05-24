@@ -67,7 +67,7 @@ export function RegisterForm({
                   className="bg-white/5 border-white/5 h-12 md:h-14 text-sm font-bold tracking-widest uppercase rounded-2xl focus:bg-white/10 transition-all"
                 />
               </FormControl>
-              <FormMessage className="text-destructive font-mono text-[10px] uppercase tracking-widest" />
+              <FormMessage className="text-destructive font-mono text-[12px] uppercase tracking-widest" />
             </FormItem>
           )}
         />
@@ -99,7 +99,7 @@ export function RegisterForm({
                   )}
                 </button>
               </div>
-              <FormMessage className="text-destructive font-mono text-[10px] uppercase tracking-widest" />
+              <FormMessage className="text-destructive font-mono text-[12px] uppercase tracking-widest" />
             </FormItem>
           )}
         />
@@ -114,12 +114,12 @@ export function RegisterForm({
         </Button>
 
         {serverError ? (
-          <p className="text-center text-[10px] font-mono text-destructive uppercase tracking-widest">
+          <p className="text-center text-[12px] font-mono text-destructive uppercase tracking-widest">
             {serverError}
           </p>
         ) : null}
 
-        <p className="text-center text-[10px] font-mono text-white/40 uppercase tracking-widest">
+        <p className="text-center text-xs font-mono text-white/40 uppercase tracking-widest">
           Sudah punya akun?{" "}
           <button
             type="button"

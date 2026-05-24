@@ -97,7 +97,7 @@ export function JoinRoomForm({ onJoinRoom, defaultPlayerName }: Props) {
                     className="bg-white/5 border-white/5 h-12 md:h-14 text-sm font-bold tracking-widest uppercase rounded-2xl focus:bg-white/10 transition-all"
                   />
                 </FormControl>
-                <FormMessage className="text-destructive font-mono text-[10px] uppercase tracking-widest" />
+                <FormMessage className="text-destructive font-mono text-[12px] uppercase tracking-widest" />
               </FormItem>
             )}
           />
@@ -117,7 +117,7 @@ export function JoinRoomForm({ onJoinRoom, defaultPlayerName }: Props) {
                     className="bg-white/5 border-white/5 h-12 md:h-14 text-sm font-black font-mono tracking-[0.2em] uppercase rounded-2xl focus:bg-white/10 transition-all text-accent"
                   />
                 </FormControl>
-                <FormMessage className="text-destructive font-mono text-[10px] uppercase tracking-widest" />
+                <FormMessage className="text-destructive font-mono text-[12px] uppercase tracking-widest" />
               </FormItem>
             )}
           />
@@ -137,7 +137,7 @@ export function JoinRoomForm({ onJoinRoom, defaultPlayerName }: Props) {
                     className="bg-white/5 border-white/5 h-12 md:h-14 text-sm font-bold tracking-widest rounded-2xl focus:bg-white/10 transition-all"
                   />
                 </FormControl>
-                <FormMessage className="text-destructive font-mono text-[10px] uppercase tracking-widest" />
+                <FormMessage className="text-destructive font-mono text-[12px] uppercase tracking-widest" />
               </FormItem>
             )}
           />

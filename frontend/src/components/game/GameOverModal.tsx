@@ -110,7 +110,7 @@ export function GameOverModal({
             <div className="grid grid-cols-2 gap-6 py-6 border-y border-white/5">
               {players.map((player) => (
                 <div key={player.id} className="text-center space-y-1">
-                  <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">
+                  <p className="text-[12px] font-bold text-white/30 uppercase tracking-[0.2em]">
                     {player.id === myPlayerId ? "You" : player.name}
                   </p>
                   <p className="text-4xl md:text-5xl font-black font-mono text-white">

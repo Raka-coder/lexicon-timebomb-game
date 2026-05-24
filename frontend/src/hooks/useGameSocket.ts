@@ -3,7 +3,7 @@ import { Socket } from "socket.io-client";
 import { useGameStore } from "../stores/gameStore";
 import { useAuthStore } from "../stores/authStore";
 import { sfx } from "@/lib/sfx";
-import { toast } from "sonner";
+import { toast } from "@/hooks/useToast";
 
 export function useGameSocket(socket: Socket | null) {
   const {

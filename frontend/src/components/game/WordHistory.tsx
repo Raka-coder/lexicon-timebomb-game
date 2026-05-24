@@ -19,7 +19,7 @@ export function WordHistory() {
           <Activity className="h-10 w-10 text-white/5" />
           <div className="absolute inset-0 bg-primary/10 blur-2xl rounded-full animate-pulse" />
         </div>
-        <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.6em] mt-6">
+        <p className="text-[12px] font-black text-white/20 uppercase tracking-[0.6em] mt-6">
           Awaiting Neural Stream...
         </p>
       </div>
@@ -67,7 +67,7 @@ export function WordHistory() {
               `}
             >
               <div className="flex items-center gap-5">
-                <div className={`h-8 w-8 rounded-xl flex items-center justify-center text-[10px] font-black font-mono ${isLatest ? 'btn-stitch text-white' : 'glass text-white/20'}`}>
+                <div className={`h-8 w-8 rounded-xl flex items-center justify-center text-[12px] font-black font-mono ${isLatest ? 'btn-stitch text-white' : 'glass text-white/20'}`}>
                   {(index + 1).toString().padStart(2, '0')}
                 </div>
                 <div className="flex flex-col">
@@ -76,7 +76,7 @@ export function WordHistory() {
                       {word}
                     </span>
                     {isLatest && (
-                      <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_10px_var(--primary)]" />
+                      <div className="h-2 w-2 rounded-full bg-primary animate-pulse shadow-[0_0_12px_var(--primary)]" />
                     )}
                   </div>
                 </div>
@@ -107,7 +107,7 @@ export function WordHistory() {
             <CornerDownRight className="h-4 w-4 text-white" />
           </div>
           <div className="flex flex-col">
-            <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Next Sequence Requirement</span>
+            <span className="text-[12px] font-black text-white/40 uppercase tracking-[0.4em]">Next Sequence Requirement</span>
             <span className="text-xs font-bold text-white/60">Initialize word with character</span>
           </div>
         </div>

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { useEffect, useRef } from "react";
 import { Send, Zap, AlertCircle, Loader2, Bell } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/hooks/useToast";
 
 const formSchema = z.object({
   word: z.string().min(3, "Minimum 3 characters"),
@@ -47,14 +47,7 @@ export function WordInput({ onSubmit }: Props) {
   useEffect(() => {
     if (isMyTurn && !hasNotifiedRef.current) {
       hasNotifiedRef.current = true;
-      toast.info("Giliranmu! Masukkan kata sekarang!", {
-        duration: 2000,
-        style: {
-          background: 'var(--primary)',
-          border: '1px solid var(--accent)',
-          color: 'white',
-        },
-      });
+      toast.info("Giliranmu! Masukkan kata sekarang!", { duration: 2000 });
     } else if (!isMyTurn) {
       hasNotifiedRef.current = false;
     }

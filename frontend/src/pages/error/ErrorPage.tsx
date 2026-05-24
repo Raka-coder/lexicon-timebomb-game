@@ -137,7 +137,7 @@ export function ErrorPage({
             <Button
               variant="ghost"
               onClick={() => navigate("/")}
-              className="w-full text-white/30 hover:text-white/70 font-mono text-[10px] uppercase tracking-[0.3em] transition-all py-4"
+              className="w-full text-white/30 hover:text-white/70 font-mono text-[12px] uppercase tracking-[0.3em] transition-all py-4"
             >
               <ArrowLeft className="h-3 w-3 mr-1.5" />
               Beranda

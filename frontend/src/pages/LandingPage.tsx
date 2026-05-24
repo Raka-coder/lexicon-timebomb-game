@@ -119,7 +119,7 @@ export function LandingPage() {
                   <h3 className="text-xs font-black text-primary uppercase tracking-[0.4em]">
                     Initialize Protocol
                   </h3>
-                  <p className="text-[10px] text-white/30 font-mono tracking-wider">
+                  <p className="text-[12px] text-white/30 font-mono tracking-wider">
                     Mulai bermain sekarang
                   </p>
                 </div>
@@ -132,7 +132,7 @@ export function LandingPage() {
                   <span>Mulai</span>
                 </Button>
 
-                <div className="text-center text-[10px] font-mono text-white/20 uppercase tracking-widest py-1">
+                <div className="text-center text-[12px] font-mono text-white/20 uppercase tracking-widest py-1">
                   {isAuthenticated
                     ? "Logged in — stats will be tracked"
                     : "Pilih mode di layar berikutnya"}

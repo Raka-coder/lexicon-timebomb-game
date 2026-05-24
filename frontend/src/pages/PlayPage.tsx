@@ -5,15 +5,14 @@ import { useGameStore } from "@/stores/gameStore";
 import { useAuthStore } from "@/stores/authStore";
 import { CreateRoomForm } from "@/components/room/CreateRoomForm";
 import { JoinRoomForm } from "@/components/room/JoinRoomForm";
-import { Button } from "@/components/ui/button";
 import {
-  ArrowLeft,
   UserPlus,
   Users,
   Shield,
   LogOut,
   Zap,
   Award,
+  ChevronRight,
 } from "lucide-react";
 import { OnlineUsersPanel } from "@/components/room/OnlineUsersPanel";
 
@@ -82,13 +81,12 @@ export function PlayPage() {
     setPlayMode("choose");
   };
 
-  const handleBack = () => {
+  const handleBackToChoose = () => {
     if (roomCode) {
       socket?.emit("LEAVE_GAME");
       reset();
     }
     setPlayMode("choose");
-    navigate("/");
   };
 
   const handleQuickPlay = () => {
@@ -137,14 +135,20 @@ export function PlayPage() {
       <div className="max-w-4xl w-full relative z-10 py-8 flex gap-8">
         <div className="flex-1 max-w-md mx-auto">
           <div className="flex items-center justify-between mb-6 md:mb-8">
-            <Button
-              variant="ghost"
-              onClick={handleBack}
-              className="h-11 px-4 glass border-white/10 text-white/60 hover:text-white hover:border-primary/30 rounded-2xl transition-all"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              <span className="text-xs font-black uppercase tracking-widest">Back</span>
-            </Button>
+            {playMode === "choose" ? (
+              <div />
+            ) : (
+              <button
+                onClick={handleBackToChoose}
+                className="flex items-center gap-2 glass px-4 py-2 rounded-xl border-white/10 text-white/40 hover:text-white hover:border-primary/30 transition-all"
+              >
+                <span className="text-[10px] font-black uppercase tracking-widest">Choose Protocol</span>
+                <ChevronRight className="h-3 w-3 text-white/20" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-primary">
+                  {playMode === "quick" ? "Quick Play" : "Account"}
+                </span>
+              </button>
+            )}
 
             {isAuthenticated && (
               <div className="flex items-center gap-2 glass rounded-xl px-3 py-1.5 border-white/10">
@@ -186,13 +190,13 @@ export function PlayPage() {
                     </div>
                     <div className="space-y-1">
                       <h3 className="text-sm font-black text-white uppercase tracking-wider">Quick Play</h3>
-                      <p className="text-[10px] text-white/40 font-mono leading-relaxed">
+                      <p className="text-[12px] text-white/40 font-mono leading-relaxed">
                         Join instantly without an account. Alias will be auto-generated.
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-1.5">
-                      <span className="px-2 py-0.5 rounded-full bg-white/5 text-[8px] font-bold text-white/30 uppercase tracking-wider">Instant</span>
-                      <span className="px-2 py-0.5 rounded-full bg-white/5 text-[8px] font-bold text-white/30 uppercase tracking-wider">No account</span>
+                      <span className="px-2 py-0.5 rounded-full bg-white/5 text-[10px] font-bold text-white/30 uppercase tracking-wider">Instant</span>
+                      <span className="px-2 py-0.5 rounded-full bg-white/5 text-[10px] font-bold text-white/30 uppercase tracking-wider">No account</span>
                     </div>
                   </div>
                 </button>
@@ -213,8 +217,8 @@ export function PlayPage() {
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-1.5">
-                      <span className="px-2 py-0.5 rounded-full bg-white/5 text-[8px] font-bold text-white/30 uppercase tracking-wider">Stats</span>
-                      <span className="px-2 py-0.5 rounded-full bg-white/5 text-[8px] font-bold text-white/30 uppercase tracking-wider">Achievements</span>
+                      <span className="px-2 py-0.5 rounded-full bg-white/5 text-[10px] font-bold text-white/30 uppercase tracking-wider">Stats</span>
+                      <span className="px-2 py-0.5 rounded-full bg-white/5 text-[10px] font-bold text-white/30 uppercase tracking-wider">Achievements</span>
                     </div>
                   </div>
                 </button>
@@ -234,16 +238,6 @@ export function PlayPage() {
           {/* STEP 2: Host / Player selection + Form */}
           {(playMode === "quick" || playMode === "account") && (
             <div className="space-y-6 animate-in fade-in duration-500">
-              {playMode !== "quick" && (
-                <button
-                  onClick={() => setPlayMode("choose")}
-                  className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white/60 transition-colors"
-                >
-                  <ArrowLeft className="h-3 w-3" />
-                  Change play mode
-                </button>
-              )}
-
               <div className="glass-card p-1 rounded-[2.5rem] overflow-hidden">
                 <div className="bg-background/40 backdrop-blur-2xl rounded-[2.4rem] p-8 space-y-6">
                   <div className="text-center space-y-2">

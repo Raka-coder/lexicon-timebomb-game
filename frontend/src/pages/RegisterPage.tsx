@@ -5,7 +5,7 @@ import { useAuthStore } from "@/stores/authStore";
 import { RegisterForm } from "@/components/auth/RegisterForm";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/hooks/useToast";
 
 type AuthAck = {
   ok: boolean;

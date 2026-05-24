@@ -11,7 +11,7 @@ import { ServerError } from "./pages/error/ServerError";
 import { Maintenance } from "./pages/error/Maintenance";
 import { useSocket } from "@/hooks/useSocket";
 import { useGameSocket } from "@/hooks/useGameSocket";
-import { Toaster } from "@/components/ui/sonner";
+import { CustomToaster } from "@/components/ui/CustomToaster";
 
 function AppContent() {
   const { socket } = useSocket();
@@ -31,7 +31,7 @@ function AppContent() {
         <Route path="/error/503" element={<Maintenance />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <Toaster position="top-center" richColors theme="dark" />
+      <CustomToaster />
     </>
   );
 }

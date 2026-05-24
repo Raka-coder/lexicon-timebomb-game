@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, Copy, Play, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/hooks/useToast";
 import { Socket } from "socket.io-client";
 import { useEffect, useMemo } from "react";
 
@@ -26,10 +26,7 @@ export function WaitingLobby({ socket }: Props) {
 
   const copyRoomCode = () => {
     navigator.clipboard.writeText(roomCode || "");
-    toast.success("Kode room disalin!", {
-      className:
-        "bg-doom-card border-doom-cyan text-doom-cyan font-mono text-xs uppercase tracking-widest",
-    });
+    toast.success("Kode room disalin!");
   };
 
   if (gameStatus === "playing") {

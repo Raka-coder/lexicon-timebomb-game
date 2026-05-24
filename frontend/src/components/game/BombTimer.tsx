@@ -119,7 +119,7 @@ export function BombTimer() {
 
       {isMyTurn && (
         <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap px-6 py-2 rounded-full glass border-primary/20 shadow-[0_0_30px_rgba(var(--primary),0.2)] animate-bounce-in">
-          <span className="text-[10px] font-black text-white uppercase tracking-[0.3em] flex items-center gap-2">
+          <span className="text-[12px] font-black text-white uppercase tracking-[0.3em] flex items-center gap-2">
             <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_var(--primary)]" />
             NEURAL TURN ACTIVE
           </span>

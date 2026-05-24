@@ -29,7 +29,7 @@ function StatusBadge({ status }: { status: OnlineUser["status"] }) {
 function OnlineUserRow({ user }: { user: OnlineUser }) {
   return (
     <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/[0.07] transition-colors">
-      <div className="flex-shrink-0 h-8 w-8 rounded-full bg-white/10 flex items-center justify-center">
+      <div className="shrink-0 h-8 w-8 rounded-full bg-white/10 flex items-center justify-center">
         <User className="h-4 w-4 text-white/60" />
       </div>
       <div className="flex-1 min-w-0">
@@ -51,7 +51,7 @@ function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-8 gap-3">
       <Users className="h-8 w-8 text-white/20" />
-      <p className="text-[10px] font-mono text-white/30 uppercase tracking-widest text-center">
+      <p className="text-[12px] font-mono text-white/30 uppercase tracking-widest text-center">
         Belum ada player online
       </p>
     </div>
@@ -69,10 +69,10 @@ export function OnlineUsersPanel({ className }: Props) {
     <div className={cn("glass rounded-2xl p-4 border-white/5", className)}>
       <div className="flex items-center gap-2 mb-4">
         <Circle className="h-2.5 w-2.5 text-green-400 fill-green-400 animate-pulse" />
-        <h3 className="text-[10px] font-black uppercase tracking-[0.3em]">
+        <h3 className="text-[12px] font-black uppercase tracking-[0.3em]">
           Online Players
         </h3>
-        <span className="ml-auto text-[10px] font-mono text-white/30">
+        <span className="ml-auto text-[12px] font-mono text-white/30">
           {onlineUsers.length} online
         </span>
       </div>
