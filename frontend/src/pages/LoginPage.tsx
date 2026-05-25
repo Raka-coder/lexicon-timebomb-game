@@ -80,7 +80,7 @@ export function LoginPage() {
           <AppBreadcrumb
             segments={[
               { label: "Home", href: "/" },
-              { label: "Play", href: "/play" },
+              { label: "Choose Protocol", href: "/play" },
               { label: "Login" },
             ]}
           />
