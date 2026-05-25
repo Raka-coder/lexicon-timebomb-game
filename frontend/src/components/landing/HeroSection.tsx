@@ -53,7 +53,7 @@ export function HeroSection({ socket, isConnected, isAuthenticated, username, cl
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative z-10 flex flex-col items-center justify-center px-6 md:px-12 py-16 md:py-24 min-h-dvh">
+    <section ref={sectionRef} className="relative z-10 flex flex-col items-center justify-center px-6 md:px-12 py-16 md:py-24 min-h-dvh overflow-hidden">
       <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
         <div className="flex-1 text-center lg:text-left space-y-8 w-full">
           <div className="space-y-6">

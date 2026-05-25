@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ReactLenis } from "lenis/react";
 import { LandingPage } from "./pages/LandingPage";
 import { PlayPage } from "./pages/PlayPage";
 import { LobbyPage } from "./pages/LobbyPage";
@@ -12,6 +13,7 @@ import { Maintenance } from "./pages/error/Maintenance";
 import { useSocket } from "@/hooks/useSocket";
 import { useGameSocket } from "@/hooks/useGameSocket";
 import { CustomToaster } from "@/components/ui/CustomToaster";
+import { LenisScrollSetup } from "@/components/LenisScrollSetup";
 
 function App() {
   const { socket } = useSocket();
@@ -19,19 +21,22 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/play" element={<PlayPage />} />
-        <Route path="/lobby" element={<LobbyPage />} />
-        <Route path="/game" element={<GamePage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/error/403" element={<Forbidden />} />
-        <Route path="/error/500" element={<ServerError />} />
-        <Route path="/error/503" element={<Maintenance />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      <CustomToaster />
+      <ReactLenis root>
+        <LenisScrollSetup />
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/play" element={<PlayPage />} />
+          <Route path="/lobby" element={<LobbyPage />} />
+          <Route path="/game" element={<GamePage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/error/403" element={<Forbidden />} />
+          <Route path="/error/500" element={<ServerError />} />
+          <Route path="/error/503" element={<Maintenance />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <CustomToaster />
+      </ReactLenis>
     </BrowserRouter>
   );
 }
