@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Play } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -130,10 +131,10 @@ export function GameplayPreviewSection() {
     <section ref={sectionRef} className="relative z-10 min-h-dvh flex flex-col items-center justify-center overflow-hidden pt-24 md:pt-28 pb-8">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,oklch(0.6_0.25_200/0.05)_0%,transparent_70%)] pointer-events-none" />
       <div className="section-header text-center space-y-3 mb-12 md:mb-16">
-        <div className="section-badge inline-flex items-center gap-2 px-4 py-1.5 glass rounded-full border-white/10">
+        <Badge variant="outline" className="section-badge glass px-4 py-1.5 h-auto gap-2 rounded-full border-white/10 text-xs font-black text-white/60 uppercase tracking-[0.2em]">
           <Play className="h-3 w-3 text-accent fill-accent" />
-          <span className="text-xs font-black text-white/60 uppercase tracking-[0.2em]">Preview</span>
-        </div>
+          Preview
+        </Badge>
         <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">
           <span className="block overflow-hidden"><span className="reveal-line inline-block">See the</span></span>
           <span className="block overflow-hidden"><span className="reveal-line inline-block">Action</span></span>

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Users, Zap, Shield } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -67,10 +68,10 @@ export function SocialProofSection({ isConnected, onlineUsers }: SocialProofSect
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,oklch(0.65_0.2_280/0.08)_0%,transparent_70%)] pointer-events-none" />
       <div className="max-w-4xl mx-auto text-center space-y-10">
         <div className="section-header space-y-3">
-          <div className="section-badge inline-flex items-center gap-2 px-4 py-1.5 glass rounded-full border-white/10">
+          <Badge variant="outline" className="section-badge glass px-4 py-1.5 h-auto gap-2 rounded-full border-white/10 text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">
             <Users className="h-3 w-3 text-primary" />
-            <span className="text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">Network</span>
-          </div>
+            Network
+          </Badge>
           <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">
             <span className="block overflow-hidden"><span className="reveal-line inline-block">Join the</span></span>
             <span className="block overflow-hidden"><span className="reveal-line inline-block">Grid</span></span>

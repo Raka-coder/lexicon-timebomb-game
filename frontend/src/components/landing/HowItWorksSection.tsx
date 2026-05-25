@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Play, ScrollText, Timer, Zap } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -47,10 +48,10 @@ export function HowItWorksSection() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,oklch(0.65_0.2_280/0.05)_0%,transparent_70%)] pointer-events-none" />
       <div className="max-w-6xl mx-auto">
         <div className="section-header text-center mb-14 md:mb-18 space-y-3">
-          <div className="section-badge inline-flex items-center gap-2 px-4 py-1.5 glass rounded-full border-white/10">
+          <Badge variant="outline" className="section-badge glass px-4 py-1.5 h-auto gap-2 rounded-full border-white/10 text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">
             <Zap className="h-3 w-3 text-primary fill-primary" />
-            <span className="text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">Tutorial</span>
-          </div>
+            Tutorial
+          </Badge>
           <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">
             <span className="block overflow-hidden"><span className="reveal-line inline-block">How It</span></span>
             <span className="block overflow-hidden"><span className="reveal-line inline-block">Works</span></span>
@@ -74,7 +75,7 @@ export function HowItWorksSection() {
                     {step.number}
                   </div>
                   <h3 className="text-sm font-black text-white uppercase tracking-wider mb-3">{step.title}</h3>
-                  <p className="text-[11px] text-white/40 font-mono leading-relaxed">{step.desc}</p>
+                  <p className="text-[12px] text-white/40 font-mono leading-relaxed">{step.desc}</p>
                 </div>
               </div>
             </div>
