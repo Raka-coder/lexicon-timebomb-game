@@ -25,7 +25,8 @@ export function GamePage() {
     scores,
     errorMessage,
     winnerId,
-    resetGameState
+    resetGameState,
+    reset
   } = useGameStore();
   const [muted, setMuted] = useState(sfx.isMuted());
   const [isRestarting, setIsRestarting] = useState(false);
@@ -90,7 +91,7 @@ export function GamePage() {
 
   const handleExitGame = () => {
     socket?.emit("LEAVE_GAME");
-    resetGameState();
+    reset();
     navigate("/play");
   };
 

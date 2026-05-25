@@ -15,11 +15,14 @@ export function LobbyPage() {
 
   useEffect(() => {
     if (!roomCode && gameStatus === "idle") {
-      navigate("/");
+      navigate("/play");
+    } else if (roomCode && gameStatus === "idle") {
+      reset();
+      navigate("/play");
     } else if (gameStatus === "playing") {
       navigate("/game");
     }
-  }, [roomCode, gameStatus, navigate]);
+  }, [roomCode, gameStatus, navigate, reset]);
 
   if (!roomCode && gameStatus === "idle") {
     return null;

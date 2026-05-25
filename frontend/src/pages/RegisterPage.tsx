@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useSocket } from "@/hooks/useSocket";
 import { useAuthStore } from "@/stores/authStore";
 import { RegisterForm } from "@/components/auth/RegisterForm";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { toast } from "@/hooks/useToast";
 
 type AuthAck = {
@@ -93,10 +92,6 @@ export function RegisterPage() {
       );
   };
 
-  const handleBack = () => {
-    navigate("/play");
-  };
-
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 md:p-8 relative overflow-hidden">
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full animate-float pointer-events-none" />
@@ -106,14 +101,23 @@ export function RegisterPage() {
 
       <div className="max-w-md w-full relative z-10 py-8">
         <div className="flex items-center justify-between mb-6 md:mb-8">
-          <Button
-            variant="ghost"
-            onClick={handleBack}
-            className="h-11 px-4 glass border-white/10 text-white/60 hover:text-white hover:border-primary/30 rounded-2xl transition-all"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            <span className="text-xs font-black uppercase tracking-widest">Back</span>
-          </Button>
+          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+            <button
+              onClick={() => navigate("/")}
+              className="text-white/30 hover:text-white transition-colors"
+            >
+              Home
+            </button>
+            <ChevronRight className="h-3 w-3 text-white/20" />
+            <button
+              onClick={() => navigate("/play")}
+              className="text-white/30 hover:text-white transition-colors"
+            >
+              Play
+            </button>
+            <ChevronRight className="h-3 w-3 text-white/20" />
+            <span className="text-primary">Register</span>
+          </div>
         </div>
 
         <div className="glass-card p-1 rounded-[2.5rem] overflow-hidden">

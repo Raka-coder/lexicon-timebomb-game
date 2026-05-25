@@ -167,22 +167,18 @@ export const useGameStore = create<GameState>((set) => ({
   },
 
   resetGameState: () =>
-    set((state) => {
-      const newState = {
-        currentWord: "",
-        requiredLetter: "",
-        wordHistory: [] as string[],
-        currentPlayerId: null,
-        scores: {} as Record<string, number>,
-        timeLeft: 15,
-        isMyTurn: false,
-        errorMessage: null,
-        isValidating: false,
-        gameStatus: "waiting" as const,
-        winnerId: null,
-        loserId: null,
-      };
-      persistState({ ...state, gameStatus: "waiting" });
-      return newState;
+    set({
+      currentWord: "",
+      requiredLetter: "",
+      wordHistory: [] as string[],
+      currentPlayerId: null,
+      scores: {} as Record<string, number>,
+      timeLeft: 15,
+      isMyTurn: false,
+      errorMessage: null,
+      isValidating: false,
+      gameStatus: "waiting" as const,
+      winnerId: null,
+      loserId: null,
     }),
 }));

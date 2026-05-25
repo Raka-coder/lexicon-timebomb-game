@@ -19,6 +19,7 @@ export function useGameSocket(socket: Socket | null) {
     setIsMyTurn,
     setError,
     resetGameState,
+    reset,
     setWinnerLoser,
     myPlayerId,
   } = useGameStore();
@@ -251,8 +252,7 @@ export function useGameSocket(socket: Socket | null) {
 
     socket.on("LEFT_GAME", ({ success }) => {
       if (success) {
-        resetGameState();
-        setGameStatus("idle");
+        reset();
         toast.info("Kamu telah keluar dari ruangan");
       }
     });
@@ -328,6 +328,7 @@ export function useGameSocket(socket: Socket | null) {
     setCurrentPlayer,
     setScores,
     resetGameState,
+    reset,
     setRoom,
     setWinnerLoser,
   ]);

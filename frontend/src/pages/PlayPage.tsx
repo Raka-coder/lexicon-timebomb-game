@@ -42,6 +42,13 @@ export function PlayPage() {
   }, [token]);
 
   useEffect(() => {
+    if (!socket) return;
+    const resetJoining = () => setJoining(false);
+    socket.on("ROOM_ERROR", resetJoining);
+    return () => { socket.off("ROOM_ERROR", resetJoining); };
+  }, [socket]);
+
+  useEffect(() => {
     if (!isConnected) return;
 
     if (roomCode && gameStatus === "playing") {
@@ -135,20 +142,31 @@ export function PlayPage() {
       <div className="max-w-4xl w-full relative z-10 py-8 flex gap-8">
         <div className="flex-1 max-w-md mx-auto">
           <div className="flex items-center justify-between mb-6 md:mb-8">
-            {playMode === "choose" ? (
-              <div />
-            ) : (
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
               <button
-                onClick={handleBackToChoose}
-                className="flex items-center gap-2 glass px-4 py-2 rounded-xl border-white/10 text-white/40 hover:text-white hover:border-primary/30 transition-all"
+                onClick={() => navigate("/")}
+                className="text-white/30 hover:text-white transition-colors"
               >
-                <span className="text-[10px] font-black uppercase tracking-widest">Choose Protocol</span>
-                <ChevronRight className="h-3 w-3 text-white/20" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-primary">
-                  {playMode === "quick" ? "Quick Play" : "Account"}
-                </span>
+                Home
               </button>
-            )}
+              <ChevronRight className="h-3 w-3 text-white/20" />
+              {playMode === "choose" ? (
+                <span className="text-primary">Choose Protocol</span>
+              ) : (
+                <>
+                  <button
+                    onClick={handleBackToChoose}
+                    className="text-white/30 hover:text-white transition-colors"
+                  >
+                    Choose Protocol
+                  </button>
+                  <ChevronRight className="h-3 w-3 text-white/20" />
+                  <span className="text-primary">
+                    {playMode === "quick" ? "Quick Play" : "Account"}
+                  </span>
+                </>
+              )}
+            </div>
 
             {isAuthenticated && (
               <div className="flex items-center gap-2 glass rounded-xl px-3 py-1.5 border-white/10">
@@ -212,7 +230,7 @@ export function PlayPage() {
                     </div>
                     <div className="space-y-1">
                       <h3 className="text-sm font-black text-white uppercase tracking-wider">With Account</h3>
-                      <p className="text-[10px] text-white/40 font-mono leading-relaxed">
+                      <p className="text-[12px] text-white/40 font-mono leading-relaxed">
                         Login or register to track your stats and achievements across games.
                       </p>
                     </div>
