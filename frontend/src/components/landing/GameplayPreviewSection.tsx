@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Play } from "lucide-react";
@@ -95,16 +96,6 @@ export function GameplayPreviewSection() {
     if (prefersReduced) return;
 
     const ctx = gsap.context(() => {
-      const header = sectionRef.current?.querySelector(".section-header");
-      if (header) {
-        gsap.from(header.querySelectorAll(".reveal-line"), {
-          y: "100%", opacity: 0, duration: 0.8, stagger: 0.12, ease: "power3.out",
-          scrollTrigger: { trigger: header, start: "top 85%", toggleActions: "play none none none" },
-        });
-        const badge = header.querySelector(".section-badge");
-        if (badge) gsap.from(badge, { opacity: 0, scale: 0.8, duration: 0.5, scrollTrigger: { trigger: badge, start: "top 90%", toggleActions: "play none none none" } });
-      }
-
       if (sectionRef.current && trackRef.current) {
         const track = trackRef.current;
         const totalWidth = track.scrollWidth;
@@ -130,16 +121,28 @@ export function GameplayPreviewSection() {
   return (
     <section ref={sectionRef} className="relative z-10 min-h-dvh flex flex-col items-center justify-center overflow-hidden pt-24 md:pt-28 pb-8">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,oklch(0.6_0.25_200/0.05)_0%,transparent_70%)] pointer-events-none" />
-      <div className="section-header text-center space-y-3 mb-12 md:mb-16">
-        <Badge variant="outline" className="section-badge glass px-4 py-1.5 h-auto gap-2 rounded-full border-white/10 text-xs font-black text-white/60 uppercase tracking-[0.2em]">
-          <Play className="h-3 w-3 text-accent fill-accent" />
-          Preview
-        </Badge>
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        className="text-center space-y-3 mb-12 md:mb-16"
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
+          <Badge variant="outline" className="glass px-4 py-1.5 h-auto gap-2 rounded-full border-white/10 text-xs font-black text-white/60 uppercase tracking-[0.2em]">
+            <Play className="h-3 w-3 text-accent fill-accent" />
+            Preview
+          </Badge>
+        </motion.div>
         <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">
-          <span className="block overflow-hidden"><span className="reveal-line inline-block">See the</span></span>
-          <span className="block overflow-hidden"><span className="reveal-line inline-block">Action</span></span>
+          <span className="block overflow-hidden"><motion.span variants={{ hidden: { y: "100%" }, visible: { y: 0, transition: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] as const } } }} className="inline-block">See the</motion.span></span>
+          <span className="block overflow-hidden"><motion.span variants={{ hidden: { y: "100%" }, visible: { y: 0, transition: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] as const } } }} className="inline-block">Action</motion.span></span>
         </h2>
-      </div>
+      </motion.div>
 
       <div ref={trackRef} className="flex gap-8 px-[10vw] pb-8 will-change-transform">
         {gameStates.map((state) => (

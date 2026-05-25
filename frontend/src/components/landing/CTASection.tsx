@@ -1,32 +1,19 @@
-import { useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-gsap.registerPlugin(ScrollTrigger);
-
 export function CTASection() {
   const navigate = useNavigate();
-  const sectionRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReduced) return;
-
-    const ctx = gsap.context(() => {
-      gsap.from(sectionRef.current, {
-        opacity: 0, y: 60, duration: 1,
-        scrollTrigger: { trigger: sectionRef.current, start: "top 85%", toggleActions: "play none none none" },
-      });
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
 
   return (
-    <section ref={sectionRef} className="relative z-10 py-20 md:py-28 px-6 md:px-12">
+    <motion.section
+      initial={{ opacity: 0, y: 60 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+      className="relative z-10 py-20 md:py-28 px-6 md:px-12"
+    >
       <div className="max-w-2xl mx-auto text-center space-y-8">
         <div className="glass-card p-1 rounded-[3rem] overflow-hidden">
           <div className="bg-background/40 backdrop-blur-2xl rounded-[2.8rem] p-10 md:p-14 space-y-8">
@@ -50,6 +37,6 @@ export function CTASection() {
       <footer className="text-center mt-16 text-[9px] font-black text-muted-foreground/20 uppercase tracking-[0.6em]">
         &copy; 2026 Lexicon Timebomb — Neural Interface
       </footer>
-    </section>
+    </motion.section>
   );
 }

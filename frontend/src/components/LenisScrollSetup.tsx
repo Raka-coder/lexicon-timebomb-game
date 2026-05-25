@@ -21,6 +21,7 @@ export function LenisScrollSetup() {
       },
     });
 
+    ScrollTrigger.refresh();
     Promise.all([
       document.fonts.ready,
       new Promise<void>((resolve) => {

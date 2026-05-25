@@ -1,10 +1,6 @@
-import { useEffect, useRef } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { motion } from "framer-motion";
 import { Zap, ScrollText, Timer, Volume2, Smartphone, Users, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
-gsap.registerPlugin(ScrollTrigger);
 
 const features = [
   { icon: Zap, title: "Real-time Multiplayer", desc: "Socket.IO powered low-latency connections. Challenge friends or match with strangers instantly." },
@@ -15,57 +11,58 @@ const features = [
   { icon: Users, title: "Global Matchmaking", desc: "Auto-generated aliases for quick play or track stats with a persistent account." },
 ];
 
+const headerReveal = {
+  hidden: { y: "100%" },
+  visible: { y: 0, transition: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] as const } },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 80, scale: 0.9 },
+  visible: (i: number) => ({
+    opacity: 1, y: 0, scale: 1,
+    transition: { duration: 0.6, delay: i * 0.08, ease: "easeOut" as const },
+  }),
+};
+
 export function FeaturesSection() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const gridRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReduced) return;
-
-    const ctx = gsap.context(() => {
-      const header = sectionRef.current?.querySelector(".section-header");
-      if (header) {
-        gsap.from(header.querySelectorAll(".reveal-line"), {
-          y: "100%", opacity: 0, duration: 0.8, stagger: 0.12, ease: "power3.out",
-          scrollTrigger: { trigger: header, start: "top 85%", toggleActions: "play none none none" },
-        });
-        const badge = header.querySelector(".section-badge");
-        if (badge) gsap.from(badge, { opacity: 0, scale: 0.8, duration: 0.5, scrollTrigger: { trigger: badge, start: "top 90%", toggleActions: "play none none none" } });
-      }
-
-      if (gridRef.current) {
-        const cards = gridRef.current.querySelectorAll<HTMLElement>(".feature-card");
-        cards.forEach((card) => {
-          gsap.from(card, {
-            opacity: 0, y: 80, scale: 0.9, duration: 1, ease: "power2.out",
-            scrollTrigger: { trigger: card, start: "top 85%", toggleActions: "play none none none" },
-          });
-        });
-      }
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
-
   return (
-    <section ref={sectionRef} className="relative z-10 py-20 md:py-28 px-6 md:px-12">
+    <section className="relative z-10 py-20 md:py-28 px-6 md:px-12">
       <div className="max-w-6xl mx-auto">
-        <div className="section-header text-center mb-14 md:mb-18 space-y-3">
-          <Badge variant="outline" className="section-badge glass px-4 py-1.5 h-auto gap-2 rounded-full border-white/10 text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">
-            <Sparkles className="h-3 w-3 text-accent fill-accent" />
-            Specs
-          </Badge>
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          className="section-header text-center mb-14 md:mb-18 space-y-3"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <Badge variant="outline" className="glass px-4 py-1.5 h-auto gap-2 rounded-full border-white/10 text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">
+              <Sparkles className="h-3 w-3 text-accent fill-accent" />
+              Specs
+            </Badge>
+          </motion.div>
           <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">
-            <span className="block overflow-hidden"><span className="reveal-line inline-block">Built for</span></span>
-            <span className="block overflow-hidden"><span className="reveal-line inline-block">War</span></span>
+            <span className="block overflow-hidden"><motion.span variants={headerReveal} className="inline-block">Built for</motion.span></span>
+            <span className="block overflow-hidden"><motion.span variants={headerReveal} className="inline-block">War</motion.span></span>
           </h2>
           <p className="text-sm text-muted-foreground font-mono max-w-lg mx-auto">Every feature engineered for the neural arena</p>
-        </div>
+        </motion.div>
 
-        <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {features.map((feature) => (
-            <div key={feature.title} className="feature-card group">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          {features.map((feature, i) => (
+            <motion.div
+              key={feature.title}
+              custom={i}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={cardVariants}
+              className="group"
+            >
               <div className="glass-card p-1 rounded-3xl overflow-hidden h-full transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]">
                 <div className="bg-background/40 backdrop-blur-2xl rounded-[1.8rem] p-6 h-full space-y-4">
                   <div className="w-11 h-11 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
@@ -77,7 +74,7 @@ export function FeaturesSection() {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>

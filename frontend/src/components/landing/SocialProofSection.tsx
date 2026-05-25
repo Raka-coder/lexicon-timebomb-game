@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Users, Zap, Shield } from "lucide-react";
@@ -11,6 +12,11 @@ interface SocialProofSectionProps {
   onlineUsers: { length: number };
 }
 
+const headerReveal = {
+  hidden: { y: "100%" },
+  visible: { y: 0, transition: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] as const } },
+};
+
 export function SocialProofSection({ isConnected, onlineUsers }: SocialProofSectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const onlineRef = useRef<HTMLSpanElement>(null);
@@ -21,16 +27,6 @@ export function SocialProofSection({ isConnected, onlineUsers }: SocialProofSect
     if (prefersReduced) return;
 
     const ctx = gsap.context(() => {
-      const header = sectionRef.current?.querySelector(".section-header");
-      if (header) {
-        gsap.from(header.querySelectorAll(".reveal-line"), {
-          y: "100%", opacity: 0, duration: 0.8, stagger: 0.12, ease: "power3.out",
-          scrollTrigger: { trigger: header, start: "top 85%", toggleActions: "play none none none" },
-        });
-        const badge = header.querySelector(".section-badge");
-        if (badge) gsap.from(badge, { opacity: 0, scale: 0.8, duration: 0.5, scrollTrigger: { trigger: badge, start: "top 90%", toggleActions: "play none none none" } });
-      }
-
       const socialNumbers = sectionRef.current?.querySelectorAll<HTMLElement>(".social-number");
       if (socialNumbers) {
         socialNumbers.forEach((el) => {
@@ -67,16 +63,28 @@ export function SocialProofSection({ isConnected, onlineUsers }: SocialProofSect
     <section ref={sectionRef} className="relative z-10 py-20 md:py-28 px-6 md:px-12">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,oklch(0.65_0.2_280/0.08)_0%,transparent_70%)] pointer-events-none" />
       <div className="max-w-4xl mx-auto text-center space-y-10">
-        <div className="section-header space-y-3">
-          <Badge variant="outline" className="section-badge glass px-4 py-1.5 h-auto gap-2 rounded-full border-white/10 text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">
-            <Users className="h-3 w-3 text-primary" />
-            Network
-          </Badge>
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.3 }}
+          className="section-header space-y-3"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <Badge variant="outline" className="glass px-4 py-1.5 h-auto gap-2 rounded-full border-white/10 text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">
+              <Users className="h-3 w-3 text-primary" />
+              Network
+            </Badge>
+          </motion.div>
           <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">
-            <span className="block overflow-hidden"><span className="reveal-line inline-block">Join the</span></span>
-            <span className="block overflow-hidden"><span className="reveal-line inline-block">Grid</span></span>
+            <span className="block overflow-hidden"><motion.span variants={headerReveal} className="inline-block">Join the</motion.span></span>
+            <span className="block overflow-hidden"><motion.span variants={headerReveal} className="inline-block">Grid</motion.span></span>
           </h2>
-        </div>
+        </motion.div>
 
         <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16">
           <div className="text-center group">
