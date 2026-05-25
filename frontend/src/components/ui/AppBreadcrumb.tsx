@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -41,12 +42,14 @@ export function AppBreadcrumb({ segments, className }: Props) {
                   </BreadcrumbLink>
                 </button>
               ) : (
-                <BreadcrumbLink
-                  href={segment.href}
-                  className="text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white transition-colors"
+                <Link
+                  to={segment.href!}
+                  className="text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white transition-colors no-underline"
                 >
-                  {segment.label}
-                </BreadcrumbLink>
+                  <BreadcrumbLink className="text-inherit hover:text-inherit cursor-pointer">
+                    {segment.label}
+                  </BreadcrumbLink>
+                </Link>
               )}
               {!isLast && (
                 <BreadcrumbSeparator className="text-white/20 [&>svg]:size-3" />
