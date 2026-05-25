@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useSocket } from "@/hooks/useSocket";
 import { useAuthStore } from "@/stores/authStore";
 import { RegisterForm } from "@/components/auth/RegisterForm";
-import { ChevronRight } from "lucide-react";
+import { AppBreadcrumb } from "@/components/ui/AppBreadcrumb";
 import { toast } from "@/hooks/useToast";
 
 type AuthAck = {
@@ -101,23 +101,13 @@ export function RegisterPage() {
 
       <div className="max-w-md w-full relative z-10 py-8">
         <div className="flex items-center justify-between mb-6 md:mb-8">
-          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
-            <button
-              onClick={() => navigate("/")}
-              className="text-white/30 hover:text-white transition-colors"
-            >
-              Home
-            </button>
-            <ChevronRight className="h-3 w-3 text-white/20" />
-            <button
-              onClick={() => navigate("/play")}
-              className="text-white/30 hover:text-white transition-colors"
-            >
-              Play
-            </button>
-            <ChevronRight className="h-3 w-3 text-white/20" />
-            <span className="text-primary">Register</span>
-          </div>
+          <AppBreadcrumb
+            segments={[
+              { label: "Home", href: "/" },
+              { label: "Play", href: "/play" },
+              { label: "Register" },
+            ]}
+          />
         </div>
 
         <div className="glass-card p-1 rounded-[2.5rem] overflow-hidden">

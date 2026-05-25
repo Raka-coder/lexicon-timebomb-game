@@ -5,6 +5,7 @@ import { useGameStore } from "@/stores/gameStore";
 import { useAuthStore } from "@/stores/authStore";
 import { CreateRoomForm } from "@/components/room/CreateRoomForm";
 import { JoinRoomForm } from "@/components/room/JoinRoomForm";
+import { AppBreadcrumb } from "@/components/ui/AppBreadcrumb";
 import {
   UserPlus,
   Users,
@@ -12,7 +13,6 @@ import {
   LogOut,
   Zap,
   Award,
-  ChevronRight,
 } from "lucide-react";
 import { OnlineUsersPanel } from "@/components/room/OnlineUsersPanel";
 
@@ -142,31 +142,17 @@ export function PlayPage() {
       <div className="max-w-4xl w-full relative z-10 py-8 flex gap-8">
         <div className="flex-1 max-w-md mx-auto">
           <div className="flex items-center justify-between mb-6 md:mb-8">
-            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
-              <button
-                onClick={() => navigate("/")}
-                className="text-white/30 hover:text-white transition-colors"
-              >
-                Home
-              </button>
-              <ChevronRight className="h-3 w-3 text-white/20" />
-              {playMode === "choose" ? (
-                <span className="text-primary">Choose Protocol</span>
-              ) : (
-                <>
-                  <button
-                    onClick={handleBackToChoose}
-                    className="text-white/30 hover:text-white transition-colors"
-                  >
-                    Choose Protocol
-                  </button>
-                  <ChevronRight className="h-3 w-3 text-white/20" />
-                  <span className="text-primary">
-                    {playMode === "quick" ? "Quick Play" : "Account"}
-                  </span>
-                </>
-              )}
-            </div>
+            <AppBreadcrumb
+              segments={
+                playMode === "choose"
+                  ? [{ label: "Home", href: "/" }, { label: "Choose Protocol" }]
+                  : [
+                      { label: "Home", href: "/" },
+                      { label: "Choose Protocol", onClick: handleBackToChoose },
+                      { label: playMode === "quick" ? "Quick Play" : "Account" },
+                    ]
+              }
+            />
 
             {isAuthenticated && (
               <div className="flex items-center gap-2 glass rounded-xl px-3 py-1.5 border-white/10">
