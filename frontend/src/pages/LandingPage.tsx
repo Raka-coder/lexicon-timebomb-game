@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useLenis } from "lenis/react";
 import { useSocket } from "@/hooks/useSocket";
 import { useGameStore } from "@/stores/gameStore";
 import { useAuthStore } from "@/stores/authStore";
@@ -161,14 +162,30 @@ export function LandingPage() {
     clearAuth();
   };
 
+  const bgRef1 = useRef<HTMLDivElement>(null);
+  const bgRef2 = useRef<HTMLDivElement>(null);
+
+  useLenis(
+    useCallback(
+      (lenis: { velocity: number }) => {
+        if (!bgRef1.current || !bgRef2.current) return;
+        const offset = lenis.velocity * 0.5;
+        bgRef1.current.style.transform = `translateY(${offset * 0.3}px) scale(${1 + Math.abs(offset) * 0.001})`;
+        bgRef2.current.style.transform = `translateY(${-offset * 0.2}px) scale(${1 + Math.abs(offset) * 0.001})`;
+      },
+      [],
+    ),
+    [],
+  );
+
   return (
-    <div className="min-h-screen bg-background flex flex-col relative overflow-x-hidden">
-      <div className="absolute top-[-15%] left-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[150px] rounded-full animate-float pointer-events-none" />
-      <div className="absolute bottom-[-15%] right-[-10%] w-[50%] h-[50%] bg-accent/10 blur-[150px] rounded-full animate-float pointer-events-none" style={{ animationDelay: "-4s" }} />
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
+    <div className="bg-background relative overflow-x-hidden">
+      <div ref={bgRef1} className="fixed top-[-15%] left-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[150px] rounded-full pointer-events-none" />
+      <div ref={bgRef2} className="fixed bottom-[-15%] right-[-10%] w-[50%] h-[50%] bg-accent/10 blur-[150px] rounded-full pointer-events-none" />
+      <div className="fixed inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
 
       {/* HERO */}
-      <section className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 md:px-12 py-12 md:py-20 min-h-screen">
+      <section className="relative z-10 flex flex-col items-center justify-center px-6 md:px-12 py-16 md:py-24 min-h-dvh">
         <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
           <div className="flex-1 text-center lg:text-left space-y-8 w-full">
             <div className="space-y-6">
@@ -446,7 +463,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <footer className="relative z-10 text-center pb-8 pt-4 text-[9px] font-black text-muted-foreground/20 uppercase tracking-[0.6em]">
+      <footer className="relative z-10 text-center pb-6 text-[9px] font-black text-muted-foreground/20 uppercase tracking-[0.6em]">
         &copy; 2026 Lexicon Timebomb — Neural Interface
       </footer>
     </div>
