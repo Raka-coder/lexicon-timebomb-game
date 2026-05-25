@@ -13,6 +13,12 @@
       "skillPath": "skills/frontend-design/SKILL.md",
       "computedHash": "063a0e6448123cd359ad0044cc46b0e490cc7964d45ef4bb9fd842bd2ffbca67"
     },
+    "gsap-animations": {
+      "source": "crazyswami/wordpress-dev-skills",
+      "sourceType": "github",
+      "skillPath": "skills/gsap-animations/SKILL.md",
+      "computedHash": "a790fba6b242dd6f9d7441581f7dd5d26041c8beff22ac373c89927addae8e1f"
+    },
     "readme-i18n": {
       "source": "xixu-me/skills",
       "sourceType": "github",

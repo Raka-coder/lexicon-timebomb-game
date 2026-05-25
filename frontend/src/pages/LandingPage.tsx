@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useLenis } from "lenis/react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useSocket } from "@/hooks/useSocket";
 import { useGameStore } from "@/stores/gameStore";
 import { useAuthStore } from "@/stores/authStore";
@@ -9,13 +10,8 @@ import {
   ScrollText, Zap, Volume2, Smartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselPrevious,
-  CarouselNext,
-} from "@/components/ui/carousel";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const features = [
   { icon: Zap, title: "Real-time Multiplayer", desc: "Socket.IO powered low-latency connections. Challenge friends or match with strangers instantly." },
@@ -27,117 +23,15 @@ const features = [
 ];
 
 const steps = [
-  {
-    icon: Play,
-    title: "Create or Join",
-    desc: "Host a private room with a password or jump into a public game. Quick play generates an alias instantly.",
-  },
-  {
-    icon: ScrollText,
-    title: "Chain Words",
-    desc: "Your word must start with the required letter — the last letter of the previous word. Every chain tightens the noose.",
-  },
-  {
-    icon: Timer,
-    title: "Survive the Bomb",
-    desc: "15 seconds per turn. Fail to submit in time and you explode. Last player standing wins.",
-  },
+  { icon: Play, number: "01", title: "Create or Join", desc: "Host a private room with a password or jump into a public game. Quick play generates an alias instantly." },
+  { icon: ScrollText, number: "02", title: "Chain Words", desc: "Your word must start with the required letter — the last letter of the previous word. Every chain tightens the noose." },
+  { icon: Timer, number: "03", title: "Survive the Bomb", desc: "15 seconds per turn. Fail to submit in time and you explode. Last player standing wins." },
 ];
 
-const carouselSlides = [
-  {
-    label: "Lobby",
-    sublabel: "PROTOCOL_ACTIVE",
-    color: "from-primary/20 to-transparent",
-    accent: "text-primary",
-    badge: "2 Pemain",
-    content: (
-      <>
-        <div className="flex items-center gap-2 mb-4">
-          <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-primary/80">LOBBY_ACTIVE</span>
-        </div>
-        <div className="text-3xl font-black font-mono text-primary glow-cyan tracking-widest mb-6">ABC12</div>
-        <div className="space-y-2">
-          {["Host", "Player 2"].map((name, i) => (
-            <div key={name} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-lg bg-white/10 flex items-center justify-center font-black text-xs text-white/50">
-                  {name[0]}
-                </div>
-                <span className="font-bold text-white uppercase text-sm">{name}</span>
-              </div>
-              {i === 0 && <span className="text-[9px] font-black text-primary uppercase tracking-widest px-2 py-0.5 rounded-md bg-primary/20 border border-primary/40">HOST</span>}
-            </div>
-          ))}
-        </div>
-      </>
-    ),
-  },
-  {
-    label: "Gameplay",
-    sublabel: "NEURAL_LINK_ACTIVE",
-    color: "from-accent/20 to-transparent",
-    accent: "text-accent",
-    badge: "Turn Active",
-    content: (
-      <>
-        <div className="text-center mb-4">
-          <div className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2">Pattern</div>
-          <div className="text-3xl font-black text-white glow-cyan tracking-tighter uppercase mb-3">RUANG</div>
-          <div className="inline-flex items-center gap-3 glass border-primary/30 px-5 py-2 rounded-2xl">
-            <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Mandatory</span>
-            <div className="h-5 w-px bg-white/10" />
-            <span className="text-2xl font-black text-white glow-purple animate-pulse">G</span>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          {["Host", "Player 2"].map((name, i) => (
-            <div key={name} className={`p-3 rounded-xl ${i === 1 ? "bg-primary/10 border border-primary/20" : "bg-white/5 border border-white/5"}`}>
-              <div className="flex items-center gap-2 mb-1">
-                <div className={`h-6 w-6 rounded-md flex items-center justify-center font-black text-[10px] ${i === 1 ? "bg-primary/20 text-primary" : "bg-white/10 text-white/40"}`}>{name[0]}</div>
-                <span className="text-[11px] font-black text-white uppercase">{name}</span>
-                {i === 1 && <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse ml-auto" />}
-              </div>
-              <span className="text-lg font-black font-mono text-white/80">{i === 0 ? "2" : "1"}</span>
-              <span className="text-[8px] font-black text-white/30 uppercase tracking-widest ml-1">pts</span>
-            </div>
-          ))}
-        </div>
-      </>
-    ),
-  },
-  {
-    label: "Game Over",
-    sublabel: "PROTOCOL_TERMINATED",
-    color: "from-destructive/20 to-transparent",
-    accent: "text-destructive",
-    badge: "Finished",
-    content: (
-      <>
-        <div className="text-center mb-4">
-          <div className="text-4xl mb-2">💀</div>
-          <div className="text-lg font-black text-destructive uppercase tracking-wider">Game Over</div>
-          <div className="text-[10px] font-mono text-white/40 tracking-widest">Protocol Terminated</div>
-        </div>
-        <div className="space-y-2">
-          {[
-            { name: "Player 2", pts: "1", win: true },
-            { name: "Host", pts: "2", win: false },
-          ].map((p) => (
-            <div key={p.name} className={`flex items-center justify-between p-3 rounded-xl ${p.win ? "bg-primary/10 border border-primary/20" : "bg-white/5 border border-white/5 opacity-60"}`}>
-              <div className="flex items-center gap-3">
-                <div className={`h-8 w-8 rounded-lg flex items-center justify-center font-black text-xs ${p.win ? "bg-primary/20 text-primary" : "bg-white/10 text-white/30"}`}>{p.name[0]}</div>
-                <span className="font-bold text-white uppercase text-sm">{p.name}</span>
-                {p.win && <span className="text-[8px] font-black text-accent uppercase tracking-wider px-1.5 py-0.5 rounded bg-accent/10 border border-accent/20">WINNER</span>}
-              </div>
-              <span className="text-lg font-black font-mono text-white/60">{p.pts} pts</span>
-            </div>
-          ))}
-        </div>
-      </>
-    ),
-  },
+const gameStates = [
+  { label: "Lobby", sublabel: "PROTOCOL_ACTIVE", badge: "2 Pemain", gradient: "linear-gradient(180deg, oklch(0.65 0.2 280 / 0.2), transparent)", type: "lobby" as const },
+  { label: "Gameplay", sublabel: "NEURAL_LINK_ACTIVE", badge: "Turn Active", gradient: "linear-gradient(180deg, oklch(0.6 0.25 200 / 0.2), transparent)", type: "gameplay" as const },
+  { label: "Game Over", sublabel: "PROTOCOL_TERMINATED", badge: "Finished", gradient: "linear-gradient(180deg, oklch(0.55 0.22 25 / 0.2), transparent)", type: "gameover" as const },
 ];
 
 export function LandingPage() {
@@ -146,6 +40,27 @@ export function LandingPage() {
   const { isAuthenticated, username, clearAuth, onlineUsers } = useAuthStore();
   const navigate = useNavigate();
   const hasResetRef = useRef(false);
+
+  const pageRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
+  const heroTitleRef = useRef<HTMLHeadingElement>(null);
+  const heroCTA = useRef<HTMLDivElement>(null);
+  const howRef = useRef<HTMLElement>(null);
+  const howStepsRef = useRef<HTMLDivElement>(null);
+  const featuresRef = useRef<HTMLElement>(null);
+  const featuresGridRef = useRef<HTMLDivElement>(null);
+  const gameplayRef = useRef<HTMLElement>(null);
+  const gameplayTrackRef = useRef<HTMLDivElement>(null);
+  const socialRef = useRef<HTMLElement>(null);
+  const ctaRef = useRef<HTMLElement>(null);
+
+  const onlineRef = useRef<HTMLSpanElement>(null);
+  const onlineAnimRef = useRef<gsap.core.Tween | null>(null);
+
+  const handleLogout = useCallback(() => {
+    socket?.emit("LOGOUT");
+    clearAuth();
+  }, [socket, clearAuth]);
 
   useEffect(() => {
     if (!hasResetRef.current && (gameStatus === "finished" || gameStatus === "waiting")) {
@@ -157,72 +72,236 @@ export function LandingPage() {
     }
   }, [gameStatus, reset]);
 
-  const handleLogout = () => {
-    socket?.emit("LOGOUT");
-    clearAuth();
-  };
+  useEffect(() => {
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const mm = gsap.matchMedia();
 
-  const bgRef1 = useRef<HTMLDivElement>(null);
-  const bgRef2 = useRef<HTMLDivElement>(null);
+    mm.add("all", () => {
+      if (prefersReduced) return () => {};
 
-  useLenis(
-    useCallback(
-      (lenis: { velocity: number }) => {
-        if (!bgRef1.current || !bgRef2.current) return;
-        const offset = lenis.velocity * 0.5;
-        bgRef1.current.style.transform = `translateY(${offset * 0.3}px) scale(${1 + Math.abs(offset) * 0.001})`;
-        bgRef2.current.style.transform = `translateY(${-offset * 0.2}px) scale(${1 + Math.abs(offset) * 0.001})`;
+      const tl = gsap.timeline({ defaults: { ease: "power3.out", duration: 0.8 } });
+
+      const badge = heroRef.current?.querySelector(".hero-badge");
+      const titleWords = heroTitleRef.current?.querySelectorAll(".word");
+      const desc = heroRef.current?.querySelector(".hero-desc");
+      const stats = heroRef.current?.querySelectorAll(".hero-stat");
+      const ctaCard = heroCTA.current;
+
+      if (badge) tl.from(badge, { opacity: 0, y: -20, duration: 0.6 }, 0);
+      if (titleWords?.length) {
+        tl.from(titleWords, { opacity: 0, y: 60, stagger: 0.15, duration: 0.9 }, 0.2);
+      }
+      if (desc) tl.from(desc, { opacity: 0, y: 30 }, 0.6);
+      if (stats?.length) tl.from(stats, { opacity: 0, x: -20, stagger: 0.1, duration: 0.5 }, 0.8);
+      if (ctaCard) tl.from(ctaCard, { opacity: 0, x: 80, scale: 0.95, duration: 1 }, 0.3);
+
+      return () => {};
+    });
+
+    return () => {
+      ScrollTrigger.getAll().forEach((st) => st.kill());
+      gsap.killTweensOf("*");
+      mm.revert();
+    };
+  }, []);
+
+  useEffect(() => {
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) return;
+
+    const ctx = gsap.context(() => {
+      const sectionHeaderTriggers = (section: HTMLElement | null) => {
+        if (!section) return;
+        const header = section.querySelector(".section-header");
+        if (!header) return;
+        gsap.from(header.querySelectorAll(".reveal-line"), {
+          y: "100%",
+          opacity: 0,
+          duration: 0.8,
+          stagger: 0.12,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: header,
+            start: "top 85%",
+            toggleActions: "play none none none",
+          },
+        });
+        const badge = header.querySelector(".section-badge");
+        if (badge) {
+          gsap.from(badge, {
+            opacity: 0,
+            scale: 0.8,
+            duration: 0.5,
+            scrollTrigger: { trigger: badge, start: "top 90%", toggleActions: "play none none none" },
+          });
+        }
+      };
+
+      sectionHeaderTriggers(howRef.current);
+      sectionHeaderTriggers(featuresRef.current);
+      sectionHeaderTriggers(gameplayRef.current);
+      sectionHeaderTriggers(socialRef.current);
+
+      if (howStepsRef.current) {
+        const cards = howStepsRef.current.querySelectorAll<HTMLElement>(".how-card");
+        gsap.from(cards, {
+          opacity: 0,
+          y: 60,
+          duration: 0.9,
+          stagger: 0.3,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: howRef.current,
+            start: "top 20%",
+            end: "bottom 40%",
+            scrub: 1.5,
+          },
+        });
+      }
+
+      if (featuresGridRef.current) {
+        const cards = featuresGridRef.current.querySelectorAll<HTMLElement>(".feature-card");
+        gsap.from(cards, {
+          opacity: 0,
+          y: 80,
+          scale: 0.95,
+          duration: 1.2,
+          stagger: 0.1,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: featuresRef.current,
+            start: "top 30%",
+            end: "bottom 20%",
+            scrub: 1.5,
+          },
+        });
+      }
+
+      if (gameplayRef.current && gameplayTrackRef.current) {
+        const track = gameplayTrackRef.current;
+        const totalWidth = track.scrollWidth;
+        const viewWidth = window.innerWidth;
+        const dist = -(totalWidth - viewWidth) - 80;
+
+        if (dist < 0) {
+          gsap.to(track, {
+            x: dist,
+            ease: "none",
+            scrollTrigger: {
+              trigger: gameplayRef.current,
+              pin: true,
+              anticipatePin: 1,
+              start: "top top",
+              end: () => `+=${Math.abs(dist) + 400}`,
+              scrub: 1.2,
+              invalidateOnRefresh: true,
+            },
+          });
+        }
+      }
+
+      const socialNumbers = socialRef.current?.querySelectorAll<HTMLElement>(".social-number");
+      if (socialNumbers) {
+        socialNumbers.forEach((el) => {
+          const final = parseFloat(el.dataset.value || "0");
+          const suffix = el.dataset.suffix || "";
+          const isInt = !el.dataset.value?.includes(".");
+          const obj = { val: 0 };
+          gsap.to(obj, {
+            val: final,
+            duration: 2,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: el.parentElement,
+              start: "top 80%",
+              toggleActions: "play none none none",
+            },
+            onUpdate: () => {
+              el.textContent = (isInt ? Math.round(obj.val) : obj.val.toFixed(1)) + suffix;
+            },
+          });
+        });
+      }
+
+      if (ctaRef.current) {
+        gsap.from(ctaRef.current, {
+          opacity: 0,
+          y: 60,
+          duration: 1,
+          scrollTrigger: {
+            trigger: ctaRef.current,
+            start: "top 85%",
+            toggleActions: "play none none none",
+          },
+        });
+      }
+    }, pageRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  useEffect(() => {
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced || !onlineRef.current) return;
+
+    if (onlineAnimRef.current) onlineAnimRef.current.kill();
+
+    const obj = { val: parseInt(onlineRef.current.textContent || "0") };
+    onlineAnimRef.current = gsap.to(obj, {
+      val: onlineUsers.length,
+      duration: 1,
+      ease: "power2.out",
+      onUpdate: () => {
+        if (onlineRef.current) onlineRef.current.textContent = String(Math.round(obj.val));
       },
-      [],
-    ),
-    [],
-  );
+    });
+  }, [onlineUsers.length]);
 
   return (
-    <div className="bg-background relative overflow-x-hidden">
-      <div ref={bgRef1} className="fixed top-[-15%] left-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[150px] rounded-full pointer-events-none" />
-      <div ref={bgRef2} className="fixed bottom-[-15%] right-[-10%] w-[50%] h-[50%] bg-accent/10 blur-[150px] rounded-full pointer-events-none" />
+    <div ref={pageRef} className="bg-background relative overflow-x-hidden">
+      <div className="fixed top-[-15%] left-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[150px] rounded-full animate-float pointer-events-none" />
+      <div className="fixed bottom-[-15%] right-[-10%] w-[50%] h-[50%] bg-accent/10 blur-[150px] rounded-full animate-float pointer-events-none" style={{ animationDelay: "-4s" }} />
       <div className="fixed inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
 
       {/* HERO */}
-      <section className="relative z-10 flex flex-col items-center justify-center px-6 md:px-12 py-16 md:py-24 min-h-dvh">
+      <section ref={heroRef} className="relative z-10 flex flex-col items-center justify-center px-6 md:px-12 py-16 md:py-24 min-h-dvh">
         <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
           <div className="flex-1 text-center lg:text-left space-y-8 w-full">
             <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 glass rounded-full border-white/10 animate-in fade-in slide-in-from-left-4 duration-700">
+              <div className="hero-badge inline-flex items-center gap-2 px-4 py-1.5 glass rounded-full border-white/10">
                 <Sparkles className="h-3.5 w-3.5 text-accent fill-accent animate-pulse" />
                 <span className="text-[9px] font-black text-white/80 uppercase tracking-[0.2em]">Next-Gen Word Engine</span>
               </div>
 
-              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black leading-[0.9] tracking-tighter text-white">
-                LEXICON
+              <h1 ref={heroTitleRef} className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black leading-[0.9] tracking-tighter text-white">
+                <span className="word inline-block">LEXICON</span>
                 <br />
-                <span className="text-transparent bg-clip-text bg-linear-to-r from-primary to-accent glow-text-purple">TIMEBOMB</span>
+                <span className="word inline-block text-transparent bg-clip-text bg-linear-to-r from-primary to-accent glow-text-purple">TIMEBOMB</span>
               </h1>
 
-              <p className="text-base md:text-lg text-muted-foreground font-medium max-w-lg mx-auto lg:mx-0 leading-relaxed">
+              <p className="hero-desc text-base md:text-lg text-muted-foreground font-medium max-w-lg mx-auto lg:mx-0 leading-relaxed">
                 Experience the <span className="text-serif text-white">highest-stakes</span>{" "}
                 multiplayer word chain ever built. Connect, survive, and dominate the neural network.
               </p>
             </div>
 
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 md:gap-10 opacity-40 grayscale hover:grayscale-0 transition-all duration-500">
-              <div className="flex items-center gap-2">
+              <div className="hero-stat flex items-center gap-2">
                 <Shield className="h-4 w-4" />
                 <span className="font-mono text-[9px] font-bold tracking-widest uppercase">Verified DB</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="hero-stat flex items-center gap-2">
                 <Play className="h-4 w-4" />
                 <span className="font-mono text-[9px] font-bold tracking-widest uppercase">Low Latency</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="hero-stat flex items-center gap-2">
                 <Sparkles className="h-4 w-4" />
                 <span className="font-mono text-[9px] font-bold tracking-widest uppercase">Global Mesh</span>
               </div>
             </div>
           </div>
 
-          <div className="w-full max-w-md lg:shrink-0 space-y-4 animate-in fade-in slide-in-from-right-8 duration-1000">
+          <div ref={heroCTA} className="w-full max-w-md lg:shrink-0 space-y-4">
             {isAuthenticated && (
               <div className="flex items-center justify-between glass rounded-2xl p-3 border-primary/20">
                 <div className="flex items-center gap-2">
@@ -269,21 +348,24 @@ export function LandingPage() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="relative z-10 py-20 md:py-28 px-6 md:px-12">
+      <section ref={howRef} className="relative z-10 py-20 md:py-28 px-6 md:px-12">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,oklch(0.65_0.2_280/0.05)_0%,transparent_70%)] pointer-events-none" />
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14 md:mb-18 space-y-3">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 glass rounded-full border-white/10">
+          <div className="section-header text-center mb-14 md:mb-18 space-y-3">
+            <div className="section-badge inline-flex items-center gap-2 px-4 py-1.5 glass rounded-full border-white/10">
               <Zap className="h-3 w-3 text-primary fill-primary" />
               <span className="text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">Tutorial</span>
             </div>
-            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">How It Works</h2>
+            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">
+              <span className="block overflow-hidden"><span className="reveal-line inline-block">How It</span></span>
+              <span className="block overflow-hidden"><span className="reveal-line inline-block">Works</span></span>
+            </h2>
             <p className="text-sm text-muted-foreground font-mono max-w-lg mx-auto">Three steps to neural domination</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            {steps.map((step, i) => (
-              <div key={step.title} className="group relative animate-in fade-in slide-in-from-bottom-4 duration-700" style={{ animationDelay: `${i * 150}ms` }}>
+          <div ref={howStepsRef} className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            {steps.map((step) => (
+              <div key={step.title} className="how-card group relative">
                 <div className="absolute -inset-1 bg-linear-to-b from-primary/20 to-accent/20 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                 <div className="relative glass-card p-1 rounded-3xl overflow-hidden h-full">
                   <div className="bg-background/60 backdrop-blur-2xl rounded-[1.8rem] p-8 h-full flex flex-col items-center text-center">
@@ -294,7 +376,7 @@ export function LandingPage() {
                       </div>
                     </div>
                     <div className="inline-flex items-center justify-center w-8 h-8 rounded-full glass border-white/10 text-[10px] font-black text-primary mb-4">
-                      {String(i + 1).padStart(2, "0")}
+                      {step.number}
                     </div>
                     <h3 className="text-sm font-black text-white uppercase tracking-wider mb-3">{step.title}</h3>
                     <p className="text-[11px] text-white/40 font-mono leading-relaxed">{step.desc}</p>
@@ -306,61 +388,127 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* GAMEPLAY PREVIEW */}
-      <section className="relative z-10 py-20 md:py-28 px-6 md:px-12">
+      {/* GAMEPLAY PREVIEW — HORIZONTAL SCROLL */}
+      <section ref={gameplayRef} className="relative z-10 h-dvh flex items-center overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,oklch(0.6_0.25_200/0.05)_0%,transparent_70%)] pointer-events-none" />
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14 md:mb-18 space-y-3">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 glass rounded-full border-white/10">
+        <div className="absolute top-10 left-0 right-0 z-10 text-center pointer-events-none">
+          <div className="section-header space-y-2">
+            <div className="section-badge inline-flex items-center gap-2 px-4 py-1.5 glass rounded-full border-white/10">
               <Play className="h-3 w-3 text-accent fill-accent" />
               <span className="text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">Preview</span>
             </div>
-            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">See the Action</h2>
-            <p className="text-sm text-muted-foreground font-mono max-w-lg mx-auto">Scroll through the game flow</p>
+            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">
+              <span className="block overflow-hidden"><span className="reveal-line inline-block">See the</span></span>
+              <span className="block overflow-hidden"><span className="reveal-line inline-block">Action</span></span>
+            </h2>
           </div>
+        </div>
 
-          <Carousel className="w-full max-w-lg mx-auto">
-            <CarouselContent>
-              {carouselSlides.map((slide, i) => (
-                <CarouselItem key={slide.label}>
-                  <div className="glass-card p-1 rounded-3xl overflow-hidden animate-in zoom-in-95 duration-500" style={{ animationDelay: `${i * 100}ms` }}>
-                    <div className={`bg-background/60 backdrop-blur-2xl rounded-[1.8rem] p-8 bg-linear-to-b ${slide.color}`}>
-                      <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-2">
-                          <div className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: i === 0 ? "oklch(0.65 0.2 280)" : i === 1 ? "oklch(0.6 0.25 200)" : "oklch(0.55 0.22 25)" }} />
-                          <span className={`text-[9px] font-black uppercase tracking-widest ${slide.accent}/80`}>{slide.sublabel}</span>
-                        </div>
-                        <span className="px-2 py-0.5 rounded-full bg-white/5 text-[8px] font-bold text-white/30 uppercase tracking-wider">{slide.badge}</span>
-                      </div>
-                      {slide.content}
+        <div ref={gameplayTrackRef} className="flex gap-8 px-[10vw] will-change-transform">
+          {gameStates.map((state) => (
+            <div key={state.label} className="min-w-[360px] md:min-w-[440px] lg:min-w-[520px] shrink-0">
+              <div className="glass-card p-1 rounded-3xl overflow-hidden h-full">
+                <div className="bg-background/60 backdrop-blur-2xl rounded-[1.8rem] p-8 md:p-10 h-full min-h-[420px] flex flex-col" style={{ backgroundImage: state.gradient }}>
+                  <div className="flex items-center justify-between mb-8">
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                      <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">{state.sublabel}</span>
                     </div>
+                    <span className="px-2 py-0.5 rounded-full bg-white/5 text-[8px] font-bold text-white/30 uppercase tracking-wider">{state.badge}</span>
                   </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <div className="flex items-center justify-center gap-4 mt-6">
-              <CarouselPrevious className="static translate-y-0 h-10 w-10 glass border-white/10 text-white/60 hover:text-white hover:border-primary/30 rounded-xl transition-all" />
-              <CarouselNext className="static translate-y-0 h-10 w-10 glass border-white/10 text-white/60 hover:text-white hover:border-primary/30 rounded-xl transition-all" />
+
+                  {state.type === "lobby" && (
+                    <div className="flex-1 flex flex-col justify-center">
+                      <div className="text-4xl font-black font-mono text-primary glow-cyan tracking-widest mb-8 text-center">ABC12</div>
+                      <div className="space-y-3">
+                        {["Host", "Player 2"].map((name, j) => (
+                          <div key={name} className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center font-black text-sm text-white/50">{name[0]}</div>
+                              <span className="font-bold text-white uppercase text-sm">{name}</span>
+                            </div>
+                            {j === 0 && <span className="text-[9px] font-black text-primary uppercase tracking-widest px-2 py-0.5 rounded-md bg-primary/20 border border-primary/40">HOST</span>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {state.type === "gameplay" && (
+                    <div className="flex-1 flex flex-col justify-center">
+                      <div className="text-center mb-6">
+                        <div className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2">Pattern</div>
+                        <div className="text-4xl font-black text-white glow-cyan tracking-tighter uppercase mb-4">RUANG</div>
+                        <div className="inline-flex items-center gap-3 glass border-primary/30 px-6 py-3 rounded-2xl">
+                          <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Mandatory</span>
+                          <div className="h-5 w-px bg-white/10" />
+                          <span className="text-3xl font-black text-white glow-purple animate-pulse">G</span>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        {["Host", "Player 2"].map((name, j) => (
+                          <div key={name} className={`p-4 rounded-xl ${j === 1 ? "bg-primary/10 border border-primary/20" : "bg-white/5 border border-white/5"}`}>
+                            <div className="flex items-center gap-2 mb-1">
+                              <div className={`h-8 w-8 rounded-lg flex items-center justify-center font-black text-xs ${j === 1 ? "bg-primary/20 text-primary" : "bg-white/10 text-white/40"}`}>{name[0]}</div>
+                              <span className="text-[11px] font-black text-white uppercase">{name}</span>
+                              {j === 1 && <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse ml-auto" />}
+                            </div>
+                            <span className="text-xl font-black font-mono text-white/80">{j === 0 ? "2" : "1"} <span className="text-[8px] font-black text-white/30 uppercase tracking-widest">pts</span></span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {state.type === "gameover" && (
+                    <div className="flex-1 flex flex-col justify-center">
+                      <div className="text-center mb-6">
+                        <div className="text-5xl mb-3">💀</div>
+                        <div className="text-xl font-black text-destructive uppercase tracking-wider">Game Over</div>
+                        <div className="text-[10px] font-mono text-white/40 tracking-widest">Protocol Terminated</div>
+                      </div>
+                      <div className="space-y-3">
+                        {[
+                          { name: "Player 2", pts: "1", win: true },
+                          { name: "Host", pts: "2", win: false },
+                        ].map((p) => (
+                          <div key={p.name} className={`flex items-center justify-between p-4 rounded-xl ${p.win ? "bg-primary/10 border border-primary/20" : "bg-white/5 border border-white/5 opacity-60"}`}>
+                            <div className="flex items-center gap-3">
+                              <div className={`h-10 w-10 rounded-xl flex items-center justify-center font-black text-sm ${p.win ? "bg-primary/20 text-primary" : "bg-white/10 text-white/30"}`}>{p.name[0]}</div>
+                              <span className="font-bold text-white uppercase text-sm">{p.name}</span>
+                              {p.win && <span className="text-[8px] font-black text-accent uppercase tracking-wider px-1.5 py-0.5 rounded bg-accent/10 border border-accent/20">WINNER</span>}
+                            </div>
+                            <span className="text-lg font-black font-mono text-white/60">{p.pts} pts</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-          </Carousel>
+          ))}
         </div>
       </section>
 
       {/* FEATURES */}
-      <section className="relative z-10 py-20 md:py-28 px-6 md:px-12">
+      <section ref={featuresRef} className="relative z-10 py-20 md:py-28 px-6 md:px-12">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14 md:mb-18 space-y-3">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 glass rounded-full border-white/10">
+          <div className="section-header text-center mb-14 md:mb-18 space-y-3">
+            <div className="section-badge inline-flex items-center gap-2 px-4 py-1.5 glass rounded-full border-white/10">
               <Sparkles className="h-3 w-3 text-accent fill-accent" />
               <span className="text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">Specs</span>
             </div>
-            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">Built for War</h2>
+            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">
+              <span className="block overflow-hidden"><span className="reveal-line inline-block">Built for</span></span>
+              <span className="block overflow-hidden"><span className="reveal-line inline-block">War</span></span>
+            </h2>
             <p className="text-sm text-muted-foreground font-mono max-w-lg mx-auto">Every feature engineered for the neural arena</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {features.map((feature, i) => (
-              <div key={feature.title} className="group animate-in fade-in slide-in-from-bottom-4 duration-700" style={{ animationDelay: `${i * 80}ms` }}>
+          <div ref={featuresGridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {features.map((feature) => (
+              <div key={feature.title} className="feature-card group">
                 <div className="glass-card p-1 rounded-3xl overflow-hidden h-full transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]">
                   <div className="bg-background/40 backdrop-blur-2xl rounded-[1.8rem] p-6 h-full space-y-4">
                     <div className="w-11 h-11 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
@@ -379,15 +527,18 @@ export function LandingPage() {
       </section>
 
       {/* SOCIAL PROOF */}
-      <section className="relative z-10 py-20 md:py-28 px-6 md:px-12">
+      <section ref={socialRef} className="relative z-10 py-20 md:py-28 px-6 md:px-12">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,oklch(0.65_0.2_280/0.08)_0%,transparent_70%)] pointer-events-none" />
         <div className="max-w-4xl mx-auto text-center space-y-10">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 glass rounded-full border-white/10">
+          <div className="section-header space-y-3">
+            <div className="section-badge inline-flex items-center gap-2 px-4 py-1.5 glass rounded-full border-white/10">
               <Users className="h-3 w-3 text-primary" />
               <span className="text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">Network</span>
             </div>
-            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">Join the Grid</h2>
+            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">
+              <span className="block overflow-hidden"><span className="reveal-line inline-block">Join the</span></span>
+              <span className="block overflow-hidden"><span className="reveal-line inline-block">Grid</span></span>
+            </h2>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16">
@@ -398,7 +549,9 @@ export function LandingPage() {
                   <div className={`h-4 w-4 rounded-full ${isConnected ? "bg-primary shadow-[0_0_15px_var(--primary)] animate-pulse" : "bg-destructive"}`} />
                 </div>
               </div>
-              <div className="text-3xl font-black font-mono text-white">{onlineUsers.length}</div>
+              <div className="text-3xl font-black font-mono text-white">
+                <span ref={onlineRef} className="social-number" data-value={onlineUsers.length} data-suffix="">{onlineUsers.length}</span>
+              </div>
               <div className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">Online Now</div>
             </div>
 
@@ -411,7 +564,7 @@ export function LandingPage() {
                   <Zap className="h-7 w-7 text-accent" />
                 </div>
               </div>
-              <div className="text-3xl font-black font-mono text-white">Real-time</div>
+              <div className="text-3xl font-black font-mono text-white social-number" data-value="24" data-suffix="/7">0/7</div>
               <div className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">Matchmaking</div>
             </div>
 
@@ -424,8 +577,8 @@ export function LandingPage() {
                   <Shield className="h-7 w-7 text-primary" />
                 </div>
               </div>
-              <div className="text-3xl font-black font-mono text-white">Free</div>
-              <div className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">No Paywall</div>
+              <div className="text-3xl font-black font-mono text-white social-number" data-value="100" data-suffix="%">0%</div>
+              <div className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">Uptime</div>
             </div>
           </div>
 
@@ -441,7 +594,7 @@ export function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="relative z-10 py-20 md:py-28 px-6 md:px-12">
+      <section ref={ctaRef} className="relative z-10 py-20 md:py-28 px-6 md:px-12">
         <div className="max-w-2xl mx-auto text-center space-y-8">
           <div className="glass-card p-1 rounded-[3rem] overflow-hidden">
             <div className="bg-background/40 backdrop-blur-2xl rounded-[2.8rem] p-10 md:p-14 space-y-8">
@@ -463,7 +616,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <footer className="relative z-10 text-center pb-6 text-[9px] font-black text-muted-foreground/20 uppercase tracking-[0.6em]">
+      <footer className="relative z-10 text-center pb-6 pt-4 text-[9px] font-black text-muted-foreground/20 uppercase tracking-[0.6em]">
         &copy; 2026 Lexicon Timebomb — Neural Interface
       </footer>
     </div>

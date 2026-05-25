@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { ReactLenis } from "lenis/react";
 import { LandingPage } from "./pages/LandingPage";
 import { PlayPage } from "./pages/PlayPage";
 import { LobbyPage } from "./pages/LobbyPage";
@@ -20,21 +19,19 @@ function App() {
 
   return (
     <BrowserRouter>
-      <ReactLenis root>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/play" element={<PlayPage />} />
-          <Route path="/lobby" element={<LobbyPage />} />
-          <Route path="/game" element={<GamePage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/error/403" element={<Forbidden />} />
-          <Route path="/error/500" element={<ServerError />} />
-          <Route path="/error/503" element={<Maintenance />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <CustomToaster />
-      </ReactLenis>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/play" element={<PlayPage />} />
+        <Route path="/lobby" element={<LobbyPage />} />
+        <Route path="/game" element={<GamePage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/error/403" element={<Forbidden />} />
+        <Route path="/error/500" element={<ServerError />} />
+        <Route path="/error/503" element={<Maintenance />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      <CustomToaster />
     </BrowserRouter>
   );
 }
