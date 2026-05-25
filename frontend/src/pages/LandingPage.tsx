@@ -161,19 +161,19 @@ export function LandingPage() {
 
       if (featuresGridRef.current) {
         const cards = featuresGridRef.current.querySelectorAll<HTMLElement>(".feature-card");
-        gsap.from(cards, {
-          opacity: 0,
-          y: 80,
-          scale: 0.95,
-          duration: 1.2,
-          stagger: 0.1,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: featuresRef.current,
-            start: "top 30%",
-            end: "bottom 20%",
-            scrub: 1.5,
-          },
+        cards.forEach((card) => {
+          gsap.from(card, {
+            opacity: 0,
+            y: 80,
+            scale: 0.9,
+            duration: 1,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: card,
+              start: "top 85%",
+              toggleActions: "play none none none",
+            },
+          });
         });
       }
 
@@ -375,7 +375,7 @@ export function LandingPage() {
                         <step.icon className="h-7 w-7 text-primary" />
                       </div>
                     </div>
-                    <div className="inline-flex items-center justify-center w-8 h-8 rounded-full glass border-white/10 text-[10px] font-black text-primary mb-4">
+                    <div className="inline-flex items-center justify-center w-8 h-8 rounded-full glass border-white/10 text-xs font-black text-primary mb-4">
                       {step.number}
                     </div>
                     <h3 className="text-sm font-black text-white uppercase tracking-wider mb-3">{step.title}</h3>
@@ -389,22 +389,20 @@ export function LandingPage() {
       </section>
 
       {/* GAMEPLAY PREVIEW — HORIZONTAL SCROLL */}
-      <section ref={gameplayRef} className="relative z-10 h-dvh flex items-center overflow-hidden">
+      <section ref={gameplayRef} className="relative z-10 min-h-dvh flex flex-col items-center justify-center overflow-hidden pt-24 md:pt-28 pb-8">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,oklch(0.6_0.25_200/0.05)_0%,transparent_70%)] pointer-events-none" />
-        <div className="absolute top-10 left-0 right-0 z-10 text-center pointer-events-none">
-          <div className="section-header space-y-2">
-            <div className="section-badge inline-flex items-center gap-2 px-4 py-1.5 glass rounded-full border-white/10">
-              <Play className="h-3 w-3 text-accent fill-accent" />
-              <span className="text-[9px] font-black text-white/60 uppercase tracking-[0.2em]">Preview</span>
-            </div>
-            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">
-              <span className="block overflow-hidden"><span className="reveal-line inline-block">See the</span></span>
-              <span className="block overflow-hidden"><span className="reveal-line inline-block">Action</span></span>
-            </h2>
+        <div className="section-header text-center space-y-3 mb-12 md:mb-16">
+          <div className="section-badge inline-flex items-center gap-2 px-4 py-1.5 glass rounded-full border-white/10">
+            <Play className="h-3 w-3 text-accent fill-accent" />
+            <span className="text-xs font-black text-white/60 uppercase tracking-[0.2em]">Preview</span>
           </div>
+          <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter uppercase">
+            <span className="block overflow-hidden"><span className="reveal-line inline-block">See the</span></span>
+            <span className="block overflow-hidden"><span className="reveal-line inline-block">Action</span></span>
+          </h2>
         </div>
 
-        <div ref={gameplayTrackRef} className="flex gap-8 px-[10vw] will-change-transform">
+        <div ref={gameplayTrackRef} className="flex gap-8 px-[10vw] pb-8 will-change-transform">
           {gameStates.map((state) => (
             <div key={state.label} className="min-w-[360px] md:min-w-[440px] lg:min-w-[520px] shrink-0">
               <div className="glass-card p-1 rounded-3xl overflow-hidden h-full">
@@ -437,7 +435,7 @@ export function LandingPage() {
                   {state.type === "gameplay" && (
                     <div className="flex-1 flex flex-col justify-center">
                       <div className="text-center mb-6">
-                        <div className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2">Pattern</div>
+                        <div className="text-xs font-black text-white/40 uppercase tracking-widest mb-2">Pattern</div>
                         <div className="text-4xl font-black text-white glow-cyan tracking-tighter uppercase mb-4">RUANG</div>
                         <div className="inline-flex items-center gap-3 glass border-primary/30 px-6 py-3 rounded-2xl">
                           <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Mandatory</span>
@@ -465,7 +463,7 @@ export function LandingPage() {
                       <div className="text-center mb-6">
                         <div className="text-5xl mb-3">💀</div>
                         <div className="text-xl font-black text-destructive uppercase tracking-wider">Game Over</div>
-                        <div className="text-[10px] font-mono text-white/40 tracking-widest">Protocol Terminated</div>
+                        <div className="text-xs font-mono text-white/40 tracking-widest">Protocol Terminated</div>
                       </div>
                       <div className="space-y-3">
                         {[
@@ -585,7 +583,7 @@ export function LandingPage() {
           <div className={`glass rounded-2xl p-5 mx-auto max-w-md border transition-all duration-500 ${isConnected ? "border-primary/20" : "border-destructive/20"}`}>
             <div className="flex items-center justify-center gap-3">
               <div className={`h-2 w-2 rounded-full ${isConnected ? "bg-primary shadow-[0_0_10px_var(--primary)] animate-pulse" : "bg-destructive"}`} />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">
+              <span className="text-xs font-black uppercase tracking-[0.2em] text-white/60">
                 Server Status: {isConnected ? "Connected" : "Disconnected"}
               </span>
             </div>
