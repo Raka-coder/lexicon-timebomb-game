@@ -1,0 +1,109 @@
+name: Auto-merge Dependabot PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    
+    steps:
+      - name: Wait for checks to complete
+        run: |
+          echo "Waiting for status checks..."
+          sleep 30
+
+      - name: Enable auto-merge for Dependabot PRs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            console.log(`Processing PR #${pr.number} from ${pr.user.login}`);
+            
+            // Check if all required checks have passed
+            const { data: pullRequest } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+            });
+
+            // Wait for checks to complete
+            let maxAttempts = 12; // 2 minutes total (12 * 10 seconds)
+            let checksComplete = false;
+
+            while (maxAttempts > 0 && !checksComplete) {
+              const { data: checkRuns } = await github.rest.checks.listForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: pr.head.sha,
+              });
+
+              const statuses = checkRuns.check_runs.map(check => check.status);
+              console.log(`Check statuses: ${statuses.join(', ')}`);
+
+              if (statuses.length > 0 && statuses.every(status => status === 'completed')) {
+                checksComplete = true;
+                console.log('All checks completed');
+              } else {
+                maxAttempts--;
+                if (maxAttempts > 0) {
+                  await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
+                }
+              }
+            }
+
+            // Get the latest commit status
+            const { data: commitStatus } = await github.rest.repos.getCombinedStatusForRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: pr.head.sha,
+            });
+
+            console.log(`Combined status: ${commitStatus.status}`);
+            console.log(`Status state: ${commitStatus.state}`);
+
+            // If status is success, merge the PR
+            if (commitStatus.state === 'success' || commitStatus.status === 'success') {
+              console.log('All checks passed, merging PR...');
+              
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+                merge_method: 'squash',
+              });
+
+              console.log(`PR #${pr.number} merged successfully!`);
+            } else {
+              console.log(`PR #${pr.number} has failed checks, skipping merge`);
+            }
+
+      - name: Auto-approve if checks pass
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            console.log(`Auto-approving PR #${pr.number}`);
+            
+            try {
+              await github.rest.pulls.createReview({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+                event: 'APPROVE',
+              });
+              console.log(`PR #${pr.number} approved`);
+            } catch (error) {
+              if (error.status === 422) {
+                console.log('Review already exists or PR is already approved');
+              } else {
+                throw error;
+              }
+            }
