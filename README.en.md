@@ -100,6 +100,46 @@ npm run dev / bun run dev
 
 Frontend runs at `http://localhost:5173`
 
+---
+
+### Run with Docker / Podman (Single Command for FE & BE)
+
+To run both Frontend and Backend concurrently in containers without managing separate terminals:
+
+#### Using Docker Compose
+```bash
+# Run with auto-build & follow logs
+npm run docker:dev
+# or: docker compose up --build
+
+# Run in background (detached)
+npm run docker:dev:d
+# or: docker compose up --build -d
+
+# Stop containers
+npm run docker:down
+# or: docker compose down
+```
+
+#### Using Podman Compose
+```bash
+# Run with auto-build
+npm run podman:dev
+# or: podman-compose up --build
+
+# Run in background (detached)
+npm run podman:dev:d
+# or: podman-compose up --build -d
+
+# Stop containers
+npm run podman:down
+# or: podman-compose down
+```
+
+Hot Module Replacement (HMR) and file watching are active inside containers.
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:3001`
+
 ## How to Play
 
 1. **Create Room** — Click "Host", enter your name, get a room code

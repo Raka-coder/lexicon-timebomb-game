@@ -105,6 +105,46 @@ npm run dev / bun run dev
 
 Frontend berjalan di `http://localhost:5173`
 
+---
+
+### Jalankan dengan Docker / Podman (Satu Perintah untuk FE & BE)
+
+Jika ingin menjalankan Backend dan Frontend sekaligus tanpa perlu membuka terminal terpisah, Anda dapat menggunakan Docker Compose atau Podman:
+
+#### Menggunakan Docker Compose
+```bash
+# Jalankan dengan auto-build & logs
+npm run docker:dev
+# atau: docker compose up --build
+
+# Jalankan di background (detached)
+npm run docker:dev:d
+# atau: docker compose up --build -d
+
+# Menghentikan container
+npm run docker:down
+# atau: docker compose down
+```
+
+#### Menggunakan Podman Compose
+```bash
+# Jalankan dengan auto-build
+npm run podman:dev
+# atau: podman-compose up --build
+
+# Jalankan di background (detached)
+npm run podman:dev:d
+# atau: podman-compose up --build -d
+
+# Menghentikan container
+npm run podman:down
+# atau: podman-compose down
+```
+
+Fitur Hot Module Replacement (HMR) dan file watching tetap aktif di dalam container.
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:3001`
+
 ## Cara Bermain
 
 1. **Buat Room** — Klik "Host", masukkan nama, dapatkan kode room
